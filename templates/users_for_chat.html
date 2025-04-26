@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Users - E-Commerce</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --bg-color: #f8f9fa;
+            --text-color: #333;
+            --border-radius: 8px;
+            --box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            padding-bottom: 2rem;
+        }
+        
+        .navbar {
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            background: linear-gradient(to right, #2c3e50, #3498db) !important;
+            padding: 12px 0;
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            letter-spacing: 0.5px;
+        }
+        
+        .nav-link {
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin: 0 5px;
+            padding: 8px 15px !important;
+            border-radius: var(--border-radius);
+        }
+        
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .page-container {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 30px;
+            margin-top: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .page-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(to right, #3498db, #2ecc71);
+        }
+        
+        .page-title {
+            color: #2c3e50;
+            font-weight: 700;
+            margin-bottom: 25px;
+            position: relative;
+            padding-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .page-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(to right, #3498db, #2ecc71);
+            border-radius: 2px;
+        }
+        
+        .page-title i {
+            margin-right: 12px;
+            color: var(--primary-color);
+        }
+        
+        .user-list {
+            border-radius: var(--border-radius);
+            overflow: hidden;
+        }
+        
+        .list-group-item {
+            padding: 15px 20px;
+            border-left: none;
+            border-right: none;
+            transition: all 0.3s ease;
+        }
+        
+        .list-group-item:first-child {
+            border-top: none;
+        }
+        
+        .list-group-item:last-child {
+            border-bottom: none;
+        }
+        
+        .list-group-item:hover {
+            background-color: rgba(52, 152, 219, 0.05);
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+        
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background-color: #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            color: var(--primary-color);
+            font-size: 1.2rem;
+        }
+        
+        .user-details {
+            flex-grow: 1;
+        }
+        
+        .user-name {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0;
+        }
+        
+        .user-role {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+        }
+        
+        .user-role.admin {
+            color: #e74c3c;
+        }
+        
+        .user-role.user {
+            color: var(--secondary-color);
+        }
+        
+        .user-role.support {
+            color: #f39c12;
+        }
+        
+        .btn-chat {
+            background: linear-gradient(to right, #3498db, #2ecc71);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 8px 18px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-chat:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            background: linear-gradient(to right, #2980b9, #27ae60);
+            color: white;
+        }
+        
+        .online-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--secondary-color);
+            display: inline-block;
+            margin-right: 6px;
+        }
+        
+        .offline-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #95a5a6;
+            display: inline-block;
+            margin-right: 6px;
+        }
+        
+        .user-status {
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .online {
+            color: var(--secondary-color);
+        }
+        
+        .offline {
+            color: #95a5a6;
+        }
+        
+        .unread-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            background-color: #2ecc71;
+            color: white;
+            border-radius: 50%;
+            font-size: 0.7rem;
+            font-weight: bold;
+            margin-left: 8px;
+            box-shadow: 0 2px 5px rgba(46, 204, 113, 0.3);
+        }
+        
+        .search-container {
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .search-input {
+            border-radius: 50px;
+            padding: 12px 20px 12px 45px;
+            border: 1px solid #ddd;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+        
+        .search-input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+            outline: none;
+        }
+        
+        .search-icon {
+            position: absolute;
+            top: 50%;
+            left: 15px;
+            transform: translateY(-50%);
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-shopping-cart me-2"></i>E-Commerce
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/products">
+                            <i class="fas fa-box me-1"></i>Products
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard">
+                            <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/cart">
+                            <i class="fas fa-shopping-cart me-1"></i>Cart (0)
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/chats">
+                            <i class="fas fa-comments me-1"></i>Chats
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/logout">
+                            <i class="fas fa-sign-out-alt me-1"></i>Logout
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-container">
+            <h2 class="page-title">
+                <i class="fas fa-comments"></i>Select a User to Chat
+            </h2>
+            
+            <div class="search-container">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" class="search-input" placeholder="Search users...">
+            </div>
+            
+            <ul class="list-group user-list">
+                {% for u in users %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div class="user-info">
+                        <div class="user-avatar">
+                            {% if u.role == 'admin' %}
+                                <i class="fas fa-user-shield"></i>
+                            {% elif u.role == 'support' %}
+                                <i class="fas fa-headset"></i>
+                            {% else %}
+                                <i class="fas fa-user"></i>
+                            {% endif %}
+                        </div>
+                        <div class="user-details">
+                            <h6 class="user-name">
+                                {{ u.username }}
+                                {% if unread_counts[u.id] > 0 %}
+                                <span class="unread-badge">{{ unread_counts[u.id] }}</span>
+                                {% endif %}
+                            </h6>
+                            <div class="d-flex align-items-center">
+                                <span class="user-role {{ u.role }}">{{ u.role|title }}</span>
+                                <span class="ms-3 user-status">
+                                    {% if u.is_online %}
+                                    <span class="online-indicator"></span>
+                                    <span class="online">Online</span>
+                                    {% else %}
+                                    <span class="offline-indicator"></span>
+                                    <span class="offline">Offline</span>
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <a href="/chat/{{ u.id }}" class="btn btn-chat">
+                        <i class="fas fa-comment"></i>
+                        Chat
+                        {% if unread_counts[u.id] > 0 %}
+                        <span class="unread-badge">{{ unread_counts[u.id] }}</span>
+                        {% endif %}
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Simple search functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.querySelector('.search-input');
+            const userItems = document.querySelectorAll('.list-group-item');
+            
+            searchInput.addEventListener('input', function() {
+                const searchText = this.value.toLowerCase();
+                
+                userItems.forEach(item => {
+                    const username = item.querySelector('.user-name').textContent.toLowerCase();
+                    const userRole = item.querySelector('.user-role').textContent.toLowerCase();
+                    
+                    if (username.includes(searchText) || userRole.includes(searchText)) {
+                        item.style.display = '';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

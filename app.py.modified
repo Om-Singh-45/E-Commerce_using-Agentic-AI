@@ -1,0 +1,2439 @@
+from flask import Flask, render_template, request, redirect, session, url_for, flash, jsonify
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
+from werkzeug.security import generate_password_hash, check_password_hash
+from functools import wraps
+from sqlalchemy import or_, func, and_
+import pymysql
+import re
+from werkzeug.utils import secure_filename
+import os
+import json
+import random
+import uuid
+import datetime
+import time
+
+# Additional imports for dynamic pricing
+import numpy as np
+import pandas as pd
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.preprocessing import StandardScaler
+import joblib
+from apscheduler.schedulers.background import BackgroundScheduler
+import requests
+from datetime import datetime, timedelta
+import threading
+import logging
+
+# Set up logging
+logging.basicConfig(level=logging.INFO, 
+                   format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger('dynamic_pricing')
+
+pymysql.install_as_MySQLdb()
+
+app = Flask(__name__)
+app.secret_key = 'your-secret-key'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:root@localhost:3306/ecommerce'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db = SQLAlchemy(app)
+migrate = Migrate(app, db)
+
+# --- Helper Functions ---
+def usd_to_inr(amount):
+    """No longer converts USD to INR as all prices are directly in INR now"""
+    # Just return the amount as-is since it's already in INR
+    return float(amount)
+
+# Register template filter
+@app.template_filter('to_inr')
+def to_inr_filter(amount):
+    """Display INR amount (no conversion needed)"""
+    return usd_to_inr(amount)
+
+# --- Login Required Decorator ---
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            flash('Please log in to access this feature.', 'error')
+            # Store the requested URL in session
+            session['next_url'] = request.url
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+# --- Role Required Decorator ---
+def role_required(*roles):
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if 'role' not in session:
+                flash('Please log in first.', 'error')
+                return redirect(url_for('login'))
+            if session['role'] not in roles:
+                flash('Unauthorized access.', 'error')
+                return redirect(url_for('dashboard'))
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
+# --- Models ---
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password = db.Column(db.String(200), nullable=False)
+    role = db.Column(db.String(10), nullable=False)  # 'user', 'seller', 'admin'
+
+class Product(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    price = db.Column(db.Float, nullable=False)
+    image = db.Column(db.String(255))
+    category = db.Column(db.String(50))
+    seller_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    seller = db.relationship('User', backref='products')
+    
+    def to_dict(self):
+        """Convert product object to dictionary for JSON serialization"""
+        return {
+            'id': self.id,
+            'name': self.name,
+            'description': self.description,
+            'price': self.price,  # Price is already in INR
+            'image': self.image,
+            'category': self.category,
+            'url': f'/product/{self.id}'
+        }
+
+class CartItem(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
+    quantity = db.Column(db.Integer, default=1)
+    product = db.relationship('Product')
+
+class Message(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    receiver_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, server_default=db.func.now())
+    read = db.Column(db.Boolean, default=False)  # Whether the message has been read
+    sender = db.relationship('User', foreign_keys=[sender_id], backref='sent_messages')
+    receiver = db.relationship('User', foreign_keys=[receiver_id], backref='received_messages')
+
+class Order(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    order_date = db.Column(db.DateTime, server_default=db.func.now())
+    total_amount = db.Column(db.Float, nullable=False)
+    status = db.Column(db.String(20), default='Pending')  # Pending, Paid, Delivered, Cancelled
+    order_number = db.Column(db.String(20), unique=True)
+    
+    user = db.relationship('User', backref='orders')
+    items = db.relationship('OrderItem', backref='order', cascade='all, delete-orphan')
+    
+    def __init__(self, user_id, total_amount):
+        self.user_id = user_id
+        self.total_amount = total_amount
+        # Generate a unique order number
+        self.order_number = f"ORD-{uuid.uuid4().hex[:8].upper()}"
+
+class OrderItem(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    order_id = db.Column(db.Integer, db.ForeignKey('order.id'), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
+    quantity = db.Column(db.Integer, default=1)
+    price = db.Column(db.Float, nullable=False)  # Store price at time of purchase
+    
+    product = db.relationship('Product')
+
+class Transaction(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    order_id = db.Column(db.Integer, db.ForeignKey('order.id'), nullable=False)
+    transaction_date = db.Column(db.DateTime, server_default=db.func.now())
+    amount = db.Column(db.Float, nullable=False)
+    payment_method = db.Column(db.String(50), nullable=False)
+    transaction_id = db.Column(db.String(100), unique=True)
+    status = db.Column(db.String(20), default='Completed')  # Completed, Failed, Refunded
+    
+    order = db.relationship('Order', backref='transactions')
+
+# Dynamic Pricing Models
+class PriceHistory(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
+    previous_price = db.Column(db.Float, nullable=False)
+    new_price = db.Column(db.Float, nullable=False)
+    change_date = db.Column(db.DateTime, server_default=db.func.now())
+    change_reason = db.Column(db.String(255))  # e.g., "Competitor price change", "Inventory low", etc.
+    
+    product = db.relationship('Product', backref='price_history')
+
+class CompetitorPrice(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
+    competitor_name = db.Column(db.String(100), nullable=False)
+    competitor_product_name = db.Column(db.String(255), nullable=False)
+    competitor_product_url = db.Column(db.String(255))
+    price = db.Column(db.Float, nullable=False)
+    last_updated = db.Column(db.DateTime, server_default=db.func.now())
+    
+    product = db.relationship('Product', backref='competitor_prices')
+
+class ProductInventory(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False, unique=True)
+    quantity = db.Column(db.Integer, default=0)
+    last_updated = db.Column(db.DateTime, server_default=db.func.now())
+    
+    product = db.relationship('Product', backref=db.backref('inventory', uselist=False))
+
+class ProductDemand(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
+    views = db.Column(db.Integer, default=0)  # Number of views for this product
+    cart_additions = db.Column(db.Integer, default=0)  # Number of times added to cart
+    purchases = db.Column(db.Integer, default=0)  # Number of actual purchases
+    date = db.Column(db.Date, nullable=False)
+    
+    product = db.relationship('Product', backref='demand_history')
+
+class PricingRule(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    category = db.Column(db.String(50))  # If null, applies to all products
+    min_price_ratio = db.Column(db.Float, default=0.8)  # Minimum price as a ratio of base price
+    max_price_ratio = db.Column(db.Float, default=1.2)  # Maximum price as a ratio of base price
+    competitor_weight = db.Column(db.Float, default=0.3)  # How much competitor prices affect our price (0-1)
+    inventory_weight = db.Column(db.Float, default=0.3)  # How much inventory affects our price (0-1)
+    demand_weight = db.Column(db.Float, default=0.4)  # How much demand affects our price (0-1)
+    max_daily_change = db.Column(db.Float, default=0.05)  # Maximum price change per day (as a percentage)
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
+    updated_at = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
+
+class PricingModel(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    model_type = db.Column(db.String(50), nullable=False, default='random_forest')  # e.g. random_forest, linear_regression
+    category = db.Column(db.String(50))  # If null, this is a general model
+    model_path = db.Column(db.String(255))  # Path to saved model file
+    accuracy = db.Column(db.Float)  # Model accuracy
+    features = db.Column(db.Text)  # JSON string of feature names
+    last_trained = db.Column(db.DateTime)
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
+    
+    def get_feature_list(self):
+        if self.features:
+            return json.loads(self.features)
+        return []
+
+class PricingLog(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
+    suggested_price = db.Column(db.Float, nullable=False)
+    actual_price = db.Column(db.Float)  # Null if not applied yet
+    reason = db.Column(db.Text)
+    was_applied = db.Column(db.Boolean, default=False)
+    applied_by = db.Column(db.Integer, db.ForeignKey('user.id'))  # User who approved/rejected
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
+    applied_at = db.Column(db.DateTime)
+    
+    product = db.relationship('Product', backref='pricing_logs')
+    user = db.relationship('User', backref='pricing_actions')
+
+# ---------------------- Dynamic Pricing Helper Functions ----------------------
+
+def create_model_directory():
+    """Create directory for storing ML models if it doesn't exist"""
+    model_dir = os.path.join('static', 'models')
+    if not os.path.exists(model_dir):
+        os.makedirs(model_dir)
+    return model_dir
+
+def get_pricing_rule(category=None):
+    """Get pricing rule for a category or default rule if not found"""
+    rule = None
+    if category:
+        rule = PricingRule.query.filter_by(category=category, is_active=True).first()
+    
+    if not rule:
+        # Get default rule (without category)
+        rule = PricingRule.query.filter_by(category=None, is_active=True).first()
+    
+    if not rule:
+        # Create default rule if none exists
+        rule = PricingRule(
+            category=None,
+            min_price_ratio=0.8,
+            max_price_ratio=1.2,
+            competitor_weight=0.3,
+            inventory_weight=0.3,
+            demand_weight=0.4,
+            max_daily_change=0.05
+        )
+        db.session.add(rule)
+        db.session.commit()
+    
+    return rule
+
+def get_base_price(product_id):
+    """Get the original price of a product before dynamic pricing"""
+    # Check price history for the first price (oldest record)
+    first_price_change = PriceHistory.query.filter_by(product_id=product_id).order_by(PriceHistory.change_date.asc()).first()
+    if first_price_change:
+        return first_price_change.previous_price
+    
+    # If no price history, use current price
+    product = Product.query.get(product_id)
+    if product:
+        return product.price
+    
+    return None
+
+def get_competitor_price_factor(product_id):
+    """Calculate a factor based on competitor prices"""
+    competitor_prices = CompetitorPrice.query.filter_by(product_id=product_id).all()
+    if not competitor_prices:
+        return 1.0  # Neutral factor
+    
+    # Calculate average competitor price
+    avg_competitor_price = sum(cp.price for cp in competitor_prices) / len(competitor_prices)
+    
+    # Get our current price
+    product = Product.query.get(product_id)
+    if not product:
+        return 1.0
+    
+    # Calculate ratio (>1 means our price is higher)
+    ratio = product.price / avg_competitor_price if avg_competitor_price > 0 else 1.0
+    
+    # Transform to a factor between 0.9 and 1.1
+    # If competitors are cheaper, factor < 1 suggests lowering our price
+    # If competitors are more expensive, factor > 1 suggests raising our price
+    factor = 1.0 + (1.0 - ratio) * 0.2  # Adjust the multiplier for more/less aggressive pricing
+    
+    # Clamp to reasonable range
+    return max(0.9, min(1.1, factor))
+
+def get_inventory_factor(product_id):
+    """Calculate a factor based on inventory levels"""
+    inventory = ProductInventory.query.filter_by(product_id=product_id).first()
+    if not inventory:
+        return 1.0  # Neutral factor
+    
+    # Define thresholds
+    low_inventory = 5   # Below this is considered low
+    high_inventory = 50  # Above this is considered high
+    
+    if inventory.quantity <= low_inventory:
+        # Low inventory suggests raising prices (up to 10% higher)
+        factor = 1.1 - (inventory.quantity / low_inventory) * 0.1
+    elif inventory.quantity >= high_inventory:
+        # High inventory suggests lowering prices (up to 10% lower)
+        excess = inventory.quantity - high_inventory
+        max_excess = 50  # Cap the excess effect
+        factor = 1.0 - min(excess, max_excess) / max_excess * 0.1
+    else:
+        # Normal inventory levels
+        factor = 1.0
+    
+    return factor
+
+def get_demand_factor(product_id):
+    """Calculate a factor based on product demand"""
+    # Get demand history for the last 30 days
+    thirty_days_ago = datetime.now().date() - timedelta(days=30)
+    demand_history = ProductDemand.query.filter(
+        ProductDemand.product_id == product_id,
+        ProductDemand.date >= thirty_days_ago
+    ).all()
+    
+    if not demand_history:
+        return 1.0  # Neutral factor
+    
+    # Calculate average views, cart adds, and purchases over this period
+    avg_views = sum(d.views for d in demand_history) / len(demand_history)
+    avg_cart_adds = sum(d.cart_additions for d in demand_history) / len(demand_history)
+    avg_purchases = sum(d.purchases for d in demand_history) / len(demand_history)
+    
+    # Calculate conversion rates
+    cart_conversion = avg_cart_adds / avg_views if avg_views > 0 else 0
+    purchase_conversion = avg_purchases / avg_cart_adds if avg_cart_adds > 0 else 0
+    
+    # High demand (high conversions) suggests raising prices
+    # Low demand (low conversions) suggests lowering prices
+    
+    # View-to-cart conversion typically averages 3-10% in e-commerce
+    # Cart-to-purchase conversion typically averages 20-40%
+    
+    # Set benchmarks
+    good_cart_conversion = 0.08  # 8%
+    good_purchase_conversion = 0.3  # 30%
+    
+    # Calculate factor components
+    cart_factor = 1.0 + (cart_conversion - good_cart_conversion) * 0.5
+    purchase_factor = 1.0 + (purchase_conversion - good_purchase_conversion) * 0.5
+    
+    # Combine factors (weighted equally)
+    combined_factor = (cart_factor + purchase_factor) / 2
+    
+    # Clamp to reasonable range (0.9 to 1.1)
+    return max(0.9, min(1.1, combined_factor))
+
+def calculate_optimal_price(product_id):
+    """Calculate the optimal price based on all factors"""
+    product = Product.query.get(product_id)
+    if not product:
+        return None
+    
+    # Get base price and current price
+    base_price = get_base_price(product_id)
+    current_price = product.price
+    
+    # Get pricing rule
+    rule = get_pricing_rule(product.category)
+    
+    # Get factors
+    competitor_factor = get_competitor_price_factor(product_id)
+    inventory_factor = get_inventory_factor(product_id)
+    demand_factor = get_demand_factor(product_id)
+    
+    # Calculate weighted factor
+    weighted_factor = (
+        competitor_factor * rule.competitor_weight +
+        inventory_factor * rule.inventory_weight +
+        demand_factor * rule.demand_weight
+    )
+    
+    # Calculate new price
+    new_price = base_price * weighted_factor
+    
+    # Apply min/max constraints based on base price
+    min_price = base_price * rule.min_price_ratio
+    max_price = base_price * rule.max_price_ratio
+    new_price = max(min_price, min(max_price, new_price))
+    
+    # Apply maximum daily change constraint
+    max_change = current_price * rule.max_daily_change
+    if abs(new_price - current_price) > max_change:
+        # Limit the change
+        if new_price > current_price:
+            new_price = current_price + max_change
+        else:
+            new_price = current_price - max_change
+    
+    # Round to 2 decimal places
+    new_price = round(new_price, 2)
+    
+    # Generate reason text
+    reason = f"Base price: ₹{base_price:.2f}\n"
+    reason += f"Competitor factor: {competitor_factor:.2f} (weight: {rule.competitor_weight:.2f})\n"
+    reason += f"Inventory factor: {inventory_factor:.2f} (weight: {rule.inventory_weight:.2f})\n"
+    reason += f"Demand factor: {demand_factor:.2f} (weight: {rule.demand_weight:.2f})\n"
+    reason += f"Weighted factor: {weighted_factor:.2f}\n"
+    reason += f"Constraints applied: min ₹{min_price:.2f}, max ₹{max_price:.2f}, max daily change ₹{max_change:.2f}"
+    
+    return {
+        'product_id': product_id,
+        'current_price': current_price,
+        'suggested_price': new_price,
+        'reason': reason
+    }
+
+def train_ml_model(category=None):
+    """Train or retrain machine learning model for dynamic pricing"""
+    logger.info(f"Training ML model for category: {category or 'all'}")
+    
+    # Since this is run from a background thread, create a new app context
+    with app.app_context():
+        try:
+            # Create directory for storing models
+            model_dir = create_model_directory()
+            
+            # Get products in this category
+            query = Product.query
+            if category:
+                query = query.filter_by(category=category)
+            products = query.all()
+            
+            if not products:
+                logger.warning(f"No products found{' in category ' + category if category else ''}")
+                return None
+            
+            # Collect training data
+            data = []
+            for product in products:
+                # Get price history
+                price_changes = PriceHistory.query.filter_by(product_id=product.id).all()
+                
+                # Skip products with no price changes
+                if not price_changes:
+                    continue
+                    
+                # Get competitor prices
+                comp_prices = CompetitorPrice.query.filter_by(product_id=product.id).all()
+                avg_comp_price = sum(p.price for p in comp_prices) / len(comp_prices) if comp_prices else 0
+                
+                # Get inventory
+                inventory = ProductInventory.query.filter_by(product_id=product.id).first()
+                stock_level = inventory.quantity if inventory else 0
+                
+                # Get demand metrics
+                last_30_days = datetime.now().date() - timedelta(days=30)
+                demand_entries = ProductDemand.query.filter(
+                    ProductDemand.product_id == product.id,
+                    ProductDemand.date >= last_30_days
+                ).all()
+                
+                avg_views = sum(d.views for d in demand_entries) / len(demand_entries) if demand_entries else 0
+                avg_cart_adds = sum(d.cart_additions for d in demand_entries) / len(demand_entries) if demand_entries else 0
+                avg_purchases = sum(d.purchases for d in demand_entries) / len(demand_entries) if demand_entries else 0
+                
+                # Create a data point for each price change to see its effect
+                for i in range(1, len(price_changes)):
+                    prev_change = price_changes[i-1]
+                    curr_change = price_changes[i]
+                    
+                    # Features
+                    features = {
+                        'previous_price': prev_change.new_price,
+                        'competitor_price_ratio': avg_comp_price / prev_change.new_price if prev_change.new_price > 0 else 1,
+                        'inventory_level': stock_level,
+                        'avg_views': avg_views,
+                        'avg_cart_adds': avg_cart_adds,
+                        'avg_purchases': avg_purchases,
+                        'conversion_rate': avg_purchases / avg_views if avg_views > 0 else 0
+                    }
+                    
+                    # Target: the optimal price that was set
+                    target = curr_change.new_price
+                    
+                    data.append((features, target))
+            
+            if not data:
+                logger.warning(f"No training data available{' for category ' + category if category else ''}")
+                return None
+            
+            # Convert to dataframe
+            features_df = pd.DataFrame([d[0] for d in data])
+            targets = np.array([d[1] for d in data])
+            
+            # Standardize features
+            scaler = StandardScaler()
+            features_scaled = scaler.fit_transform(features_df)
+            
+            # Train model
+            model = RandomForestRegressor(n_estimators=100, random_state=42)
+            model.fit(features_scaled, targets)
+            
+            # Save scaler and model
+            model_filename = f"pricing_model{'_' + category if category else ''}.joblib"
+            scaler_filename = f"pricing_scaler{'_' + category if category else ''}.joblib"
+            
+            model_path = os.path.join(model_dir, model_filename)
+            scaler_path = os.path.join(model_dir, scaler_filename)
+            
+            joblib.dump(model, model_path)
+            joblib.dump(scaler, scaler_path)
+            
+            # Calculate accuracy (for demonstration - in real life you'd use proper validation)
+            predicted = model.predict(features_scaled)
+            accuracy = 1 - np.mean(np.abs(predicted - targets) / targets)
+            
+            # Update or create model record in DB
+            model_record = PricingModel.query.filter_by(category=category).first()
+            if not model_record:
+                model_record = PricingModel(category=category)
+            
+            model_record.model_path = model_path
+            model_record.accuracy = float(accuracy)
+            model_record.features = json.dumps(features_df.columns.tolist())
+            model_record.last_trained = datetime.now()
+            
+            db.session.add(model_record)
+            db.session.commit()
+            
+            logger.info(f"ML model{'for category ' + category if category else ''} trained with accuracy {accuracy:.2f}")
+            return model_record
+        
+        except Exception as e:
+            logger.error(f"Error training ML model: {str(e)}")
+            return None
+
+def predict_with_ml_model(product_id):
+    """Use ML model to predict optimal price"""
+    product = Product.query.get(product_id)
+    if not product:
+        return None
+    
+    # First try to get category-specific model
+    model_record = PricingModel.query.filter_by(category=product.category, is_active=True).first()
+    
+    # If no category model, try the general model
+    if not model_record:
+        model_record = PricingModel.query.filter_by(category=None, is_active=True).first()
+    
+    if not model_record or not os.path.exists(model_record.model_path):
+        # No suitable model found, use rule-based approach
+        return calculate_optimal_price(product_id)
+    
+    try:
+        # Load model and scaler
+        model_dir = os.path.dirname(model_record.model_path)
+        model_name = os.path.basename(model_record.model_path)
+        scaler_name = model_name.replace('pricing_model', 'pricing_scaler')
+        scaler_path = os.path.join(model_dir, scaler_name)
+        
+        model = joblib.load(model_record.model_path)
+        scaler = joblib.load(scaler_path) if os.path.exists(scaler_path) else None
+        
+        # Get feature values
+        comp_prices = CompetitorPrice.query.filter_by(product_id=product.id).all()
+        avg_comp_price = sum(p.price for p in comp_prices) / len(comp_prices) if comp_prices else 0
+        
+        inventory = ProductInventory.query.filter_by(product_id=product.id).first()
+        stock_level = inventory.quantity if inventory else 0
+        
+        last_30_days = datetime.now().date() - timedelta(days=30)
+        demand_entries = ProductDemand.query.filter(
+            ProductDemand.product_id == product.id,
+            ProductDemand.date >= last_30_days
+        ).all()
+        
+        avg_views = sum(d.views for d in demand_entries) / len(demand_entries) if demand_entries else 0
+        avg_cart_adds = sum(d.cart_additions for d in demand_entries) / len(demand_entries) if demand_entries else 0
+        avg_purchases = sum(d.purchases for d in demand_entries) / len(demand_entries) if demand_entries else 0
+        
+        # Create features array
+        features = {
+            'previous_price': product.price,
+            'competitor_price_ratio': avg_comp_price / product.price if product.price > 0 else 1,
+            'inventory_level': stock_level,
+            'avg_views': avg_views,
+            'avg_cart_adds': avg_cart_adds,
+            'avg_purchases': avg_purchases,
+            'conversion_rate': avg_purchases / avg_views if avg_views > 0 else 0
+        }
+        
+        # Convert to DataFrame to ensure feature order
+        features_df = pd.DataFrame([features])
+        
+        # Reorder columns if necessary to match the training data
+        expected_features = model_record.get_feature_list()
+        if expected_features:
+            # Ensure all expected features exist
+            for feat in expected_features:
+                if feat not in features_df.columns:
+                    features_df[feat] = 0  # Default value
+            # Reorder columns
+            features_df = features_df[expected_features]
+        
+        # Scale features if we have a scaler
+        if scaler:
+            features_scaled = scaler.transform(features_df)
+        else:
+            features_scaled = features_df.values
+        
+        # Predict optimal price
+        predicted_price = model.predict(features_scaled)[0]
+        
+        # Apply safety constraints
+        base_price = get_base_price(product_id)
+        rule = get_pricing_rule(product.category)
+        
+        min_price = base_price * rule.min_price_ratio
+        max_price = base_price * rule.max_price_ratio
+        predicted_price = max(min_price, min(max_price, predicted_price))
+        
+        # Apply maximum daily change constraint
+        max_change = product.price * rule.max_daily_change
+        if abs(predicted_price - product.price) > max_change:
+            # Limit the change
+            if predicted_price > product.price:
+                predicted_price = product.price + max_change
+            else:
+                predicted_price = product.price - max_change
+        
+        # Round to 2 decimal places
+        predicted_price = round(predicted_price, 2)
+        
+        # Generate reason text
+        reason = f"ML model prediction based on:\n"
+        reason += f"Current price: ₹{product.price:.2f}\n"
+        reason += f"Competitor price ratio: {features['competitor_price_ratio']:.2f}\n"
+        reason += f"Inventory level: {stock_level}\n"
+        reason += f"Average views: {avg_views:.2f}\n"
+        reason += f"Conversion rate: {features['conversion_rate']:.2f}\n"
+        reason += f"Model accuracy: {model_record.accuracy:.2f}\n"
+        reason += f"Constraints applied: min ₹{min_price:.2f}, max ₹{max_price:.2f}, max daily change ₹{max_change:.2f}"
+        
+        return {
+            'product_id': product_id,
+            'current_price': product.price,
+            'suggested_price': predicted_price,
+            'reason': reason
+        }
+        
+    except Exception as e:
+        logger.error(f"Error using ML model for prediction: {str(e)}")
+        # Fallback to rule-based approach
+        return calculate_optimal_price(product_id)
+
+def update_product_demand(product_id, view=False, cart_add=False, purchase=False):
+    """Update product demand metrics"""
+    today = datetime.now().date()
+    demand = ProductDemand.query.filter_by(product_id=product_id, date=today).first()
+    
+    if not demand:
+        demand = ProductDemand(product_id=product_id, date=today)
+        db.session.add(demand)
+    
+    if view:
+        demand.views += 1
+    if cart_add:
+        demand.cart_additions += 1
+    if purchase:
+        demand.purchases += 1
+    
+    db.session.commit()
+
+def apply_price_change(product_id, new_price, user_id=None, reason=None):
+    """Apply a price change to a product"""
+    product = Product.query.get(product_id)
+    if not product:
+        return False
+    
+    # Create price history record
+    price_history = PriceHistory(
+        product_id=product_id,
+        previous_price=product.price,
+        new_price=new_price,
+        change_reason=reason
+    )
+    
+    # Update product price
+    product.price = new_price
+    
+    # Update pricing log if it exists
+    pricing_log = PricingLog.query.filter_by(
+        product_id=product_id,
+        was_applied=False
+    ).order_by(PricingLog.created_at.desc()).first()
+    
+    if pricing_log:
+        pricing_log.was_applied = True
+        pricing_log.actual_price = new_price
+        pricing_log.applied_by = user_id
+        pricing_log.applied_at = datetime.now()
+    
+    db.session.add(price_history)
+    db.session.commit()
+    return True
+
+def scheduled_price_analysis():
+    """Run scheduled price analysis for all products"""
+    logger.info("Running scheduled price analysis")
+    
+    # Since this is run from a background thread, create a new app context
+    with app.app_context():
+        products = Product.query.all()
+        
+        for product in products:
+            try:
+                # First try ML model approach
+                prediction = predict_with_ml_model(product.id)
+                
+                # If that fails, use rule-based approach
+                if not prediction:
+                    prediction = calculate_optimal_price(product.id)
+                
+                if prediction and prediction['suggested_price'] != prediction['current_price']:
+                    # Log the suggestion
+                    pricing_log = PricingLog(
+                        product_id=product.id,
+                        suggested_price=prediction['suggested_price'],
+                        reason=prediction['reason']
+                    )
+                    db.session.add(pricing_log)
+                    db.session.commit()
+                    logger.info(f"Price change suggested for product {product.id}: {prediction['current_price']} -> {prediction['suggested_price']}")
+            except Exception as e:
+                logger.error(f"Error analyzing price for product {product.id}: {str(e)}")
+        
+        logger.info("Scheduled price analysis completed")
+
+def get_pricing_suggestions():
+    """Get all pending pricing suggestions"""
+    return PricingLog.query.filter_by(was_applied=False).order_by(PricingLog.created_at.desc()).all()
+
+def init_pricing_agent():
+    """Initialize the pricing agent"""
+    try:
+        # Since this might be called from a background thread,
+        # we need to create a new application context
+        with app.app_context():
+            # Check if we have any pricing rules
+            default_rule = PricingRule.query.filter_by(category=None).first()
+            if not default_rule:
+                # Create default pricing rule
+                default_rule = PricingRule()
+                db.session.add(default_rule)
+                db.session.commit()
+                logger.info("Created default pricing rule")
+            
+            # Ensure directories exist
+            create_model_directory()
+            
+            # Set up scheduler
+            scheduler = BackgroundScheduler()
+            
+            # Add job to run price analysis daily at 1:00 AM
+            scheduler.add_job(
+                scheduled_price_analysis,
+                'cron',
+                hour=1,
+                minute=0,
+                id='price_analysis'
+            )
+            
+            # Add job to train ML models weekly on Sunday at 2:00 AM
+            scheduler.add_job(
+                train_ml_model,
+                'cron',
+                day_of_week='sun',
+                hour=2,
+                minute=0,
+                id='train_ml_model'
+            )
+            
+            scheduler.start()
+            logger.info("Dynamic pricing agent initialized")
+        
+    except Exception as e:
+        logger.error(f"Error initializing pricing agent: {str(e)}")
+
+# Initialize pricing agent when app starts
+# @app.before_first_request  # This decorator was removed in Flask 3.0
+def setup_pricing_agent():
+    """Set up pricing agent on first request"""
+    # Run in a separate thread to avoid blocking the first request
+    thread = threading.Thread(target=init_pricing_agent)
+    thread.daemon = True  # Make thread a daemon so it exits when main thread exits
+    thread.start()
+
+# We'll initialize the pricing agent when the app starts
+# This will run after all routes are defined, right before the app.run() call
+if __name__ == '__main__':
+    # Create all database tables if they don't exist
+    with app.app_context():
+        # Create all tables based on the defined models
+        db.create_all()
+        print("Database tables created or verified.")
+        
+        # Start the pricing agent in a background thread
+        setup_pricing_agent()
+    # Run the app
+    app.run(debug=True)
+
+@app.route('/')
+def home():
+    try:
+        # Get featured products (top 4 products)
+        featured_products = Product.query.order_by(func.random()).limit(4).all()
+        
+        # Print information for debugging
+        print(f"Found {len(featured_products)} featured products")
+        for product in featured_products:
+            print(f"Product: {product.name}, ID: {product.id}")
+        
+        # Check if template exists
+        import os
+        template_path = os.path.join('templates', 'home.html')
+        if os.path.exists(template_path):
+            print(f"Template exists at: {template_path}")
+        else:
+            print(f"Template NOT found at: {template_path}")
+        
+        return render_template('home.html', featured_products=featured_products)
+    except Exception as e:
+        print(f"Error in home route: {str(e)}")
+        return f"Error: {str(e)}", 500
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form['username']
+        email = request.form['email']
+        role = request.form['role']
+        password = generate_password_hash(request.form['password'])
+        if User.query.filter_by(email=email).first():
+            flash('Email already exists!', 'error')
+            return render_template('register.html')
+        new_user = User(username=username, email=email, password=password, role=role)
+        db.session.add(new_user)
+        db.session.commit()
+        flash('Registration successful! Please login.', 'success')
+        return redirect(url_for('login'))
+    return render_template('register.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        user = User.query.filter_by(email=email).first()
+        if user and check_password_hash(user.password, password):
+            session['user_id'] = user.id
+            session['role'] = user.role
+            session['username'] = user.username
+            flash(f'Welcome back, {user.username}!', 'success')
+            # Redirect to stored URL or dashboard
+            next_url = session.pop('next_url', None)
+            return redirect(next_url or url_for('dashboard'))
+        flash('Invalid credentials!', 'error')
+        return render_template('login.html')
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    flash('You have been logged out.', 'info')
+    return redirect(url_for('home'))
+
+# --- Dashboard ---
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    user = User.query.get(session['user_id'])
+    
+    # Count unread messages for the current user
+    unread_message_count = Message.query.filter_by(
+        receiver_id=user.id,
+        read=False
+    ).count()
+    
+    if user.role == 'seller':
+        products = Product.query.filter_by(seller_id=user.id).all()
+        return render_template('dashboard.html', user=user, products=products, 
+                              unread_message_count=unread_message_count)
+    elif user.role == 'user':
+        cart_items = CartItem.query.filter_by(user_id=user.id).all()
+        # Get some recommended products for the user
+        recommended_products = Product.query.order_by(func.random()).limit(3).all()
+        return render_template('dashboard.html', user=user, cart_items=cart_items, 
+                              recommended_products=recommended_products, 
+                              unread_message_count=unread_message_count)
+    else:  # admin
+        users = User.query.all()
+        products = Product.query.all()
+        return render_template('dashboard.html', user=user, users=users, products=products, 
+                              unread_message_count=unread_message_count)
+
+# --- Product Management (Seller & Admin) ---
+@app.route('/add_product', methods=['GET', 'POST'])
+@login_required
+@role_required('seller', 'admin')
+def add_product():
+    # Define product categories
+    categories = [
+        'Phone', 'Laptop', 'Tablet', 'Headphone', 'Earbuds', 
+        'Camera', 'Watch', 'TV', 'Home Appliance', 'Gaming', 
+        'Fashion', 'Beauty', 'Books', 'Sports', 'Other'
+    ]
+    
+    if request.method == 'POST':
+        name = request.form['name']
+        description = request.form['description']
+        price = float(request.form['price'])
+        category = request.form['category']
+        image_file = request.files.get('image')
+        image_filename = None
+        if image_file and image_file.filename:
+            import os
+            upload_folder = os.path.join('static', 'uploads')
+            if not os.path.exists(upload_folder):
+                os.makedirs(upload_folder)
+            image_filename = image_file.filename
+            image_path = os.path.join(upload_folder, image_filename)
+            image_file.save(image_path)
+        new_product = Product(
+            name=name, 
+            description=description, 
+            price=price, 
+            seller_id=session['user_id'], 
+            image=image_filename,
+            category=category
+        )
+        db.session.add(new_product)
+        db.session.commit()
+        
+        # Create initial inventory record for dynamic pricing
+        initial_quantity = int(request.form.get('initial_quantity', 0))
+        inventory = ProductInventory(
+            product_id=new_product.id,
+            quantity=initial_quantity
+        )
+        db.session.add(inventory)
+        
+        # Create initial price history record
+        price_history = PriceHistory(
+            product_id=new_product.id,
+            previous_price=price,
+            new_price=price,
+            change_reason="Initial price"
+        )
+        db.session.add(price_history)
+        db.session.commit()
+        
+        flash('Product added successfully!', 'success')
+        return redirect(url_for('dashboard'))
+    return render_template('add_product.html', categories=categories)
+
+@app.route('/edit_product/<int:product_id>', methods=['GET', 'POST'])
+def edit_product(product_id):
+    if 'user_id' not in session or session.get('role') != 'seller':
+        return redirect('/login')
+        
+    product = Product.query.get_or_404(product_id)
+    
+    # Ensure seller can only edit their own products
+    if product.seller_id != session['user_id']:
+        flash('You can only edit your own products!', 'error')
+        return redirect('/dashboard')
+    
+    # Define product categories
+    categories = [
+        'Phone', 'Laptop', 'Tablet', 'Headphone', 'Earbuds', 
+        'Camera', 'Watch', 'TV', 'Home Appliance', 'Gaming', 
+        'Fashion', 'Beauty', 'Books', 'Sports', 'Other'
+    ]
+    
+    if request.method == 'POST':
+        product.name = request.form['name']
+        product.description = request.form['description']
+        old_price = product.price
+        new_price = float(request.form['price'])
+        product.price = new_price
+        product.category = request.form['category']
+        
+        image_file = request.files.get('image')
+        if image_file and image_file.filename:
+            import os
+            upload_folder = os.path.join('static', 'uploads')
+            if not os.path.exists(upload_folder):
+                os.makedirs(upload_folder)
+            image_filename = image_file.filename
+            image_path = os.path.join(upload_folder, image_filename)
+            image_file.save(image_path)
+            product.image = image_filename
+        
+        # Update inventory if quantity is provided
+        if 'quantity' in request.form:
+            inventory = ProductInventory.query.filter_by(product_id=product_id).first()
+            new_quantity = int(request.form['quantity'])
+            
+            if inventory:
+                inventory.quantity = new_quantity
+                inventory.last_updated = datetime.now()
+            else:
+                inventory = ProductInventory(
+                    product_id=product_id,
+                    quantity=new_quantity
+                )
+                db.session.add(inventory)
+        
+        # Add price history record if price changed
+        if old_price != new_price:
+            price_history = PriceHistory(
+                product_id=product_id,
+                previous_price=old_price,
+                new_price=new_price,
+                change_reason="Manual update by seller"
+            )
+            db.session.add(price_history)
+        
+        db.session.commit()
+        flash('Product updated successfully!', 'success')
+        return redirect(url_for('dashboard'))
+    
+    # Get current inventory
+    inventory = ProductInventory.query.filter_by(product_id=product_id).first()
+    quantity = inventory.quantity if inventory else 0
+    
+    return render_template('edit_product.html', product=product, categories=categories, quantity=quantity)
+
+@app.route('/delete_product/<int:product_id>', methods=['POST'])
+def delete_product(product_id):
+    if 'user_id' not in session or session.get('role') != 'seller':
+        return redirect('/login')
+    product = Product.query.get_or_404(product_id)
+    if product.seller_id != session['user_id']:
+        return 'Unauthorized', 403
+    db.session.delete(product)
+    db.session.commit()
+    return redirect('/dashboard')
+
+# --- Product Browsing (Public) ---
+@app.route('/products')
+def products():
+    # Get search query and category filter from query parameters
+    search_query = request.args.get('search', '')
+    category = request.args.get('category', '')
+    min_price = request.args.get('min_price', '')
+    max_price = request.args.get('max_price', '')
+    sort_by = request.args.get('sort_by', 'featured')
+    
+    # Define all available categories
+    categories = [
+        'Phone', 'Laptop', 'Tablet', 'Headphone', 'Earbuds', 
+        'Camera', 'Watch', 'TV', 'Home Appliance', 'Gaming', 
+        'Fashion', 'Beauty', 'Books', 'Sports', 'Other'
+    ]
+    
+    # Start with base query
+    query = Product.query
+    
+    # Apply search if provided
+    if search_query:
+        query = query.filter(
+            or_(
+                Product.name.ilike(f'%{search_query}%'),
+                Product.description.ilike(f'%{search_query}%'),
+                Product.category.ilike(f'%{search_query}%')
+            )
+        )
+    
+    # Apply category filter if provided
+    if category and category != 'All':
+        query = query.filter(Product.category == category)
+    
+    # Apply price range filters if provided
+    if min_price and min_price.isdigit():
+        query = query.filter(Product.price >= float(min_price))
+    
+    if max_price and max_price.isdigit():
+        query = query.filter(Product.price <= float(max_price))
+    
+    # Apply sorting
+    if sort_by == 'price_low_high':
+        query = query.order_by(Product.price.asc())
+    elif sort_by == 'price_high_low':
+        query = query.order_by(Product.price.desc())
+    elif sort_by == 'newest':
+        query = query.order_by(Product.id.desc())  # Assuming newer products have higher IDs
+    elif sort_by == 'rating':
+        # For simplicity, we'll sort by ID since we don't have ratings
+        # In a real app, you would sort by an actual rating field
+        query = query.order_by(Product.id.asc())
+    # Default 'featured' sorting - you might want to customize this
+    else:
+        query = query.order_by(Product.id.asc())
+    
+    # Get results
+    products = query.all()
+    
+    return render_template('products.html', 
+                         products=products, 
+                         categories=categories,
+                         selected_category=category,
+                         search_query=search_query,
+                         min_price=min_price,
+                         max_price=max_price,
+                         sort_by=sort_by,
+                         user_role=session.get('role'),
+                         is_logged_in='user_id' in session)
+
+@app.route('/product/<int:product_id>')
+def product_detail(product_id):
+    product = Product.query.get_or_404(product_id)
+    
+    # Track product view for demand metrics
+    update_product_demand(product_id, view=True)
+    
+    # Get similar products from the same category, excluding current product
+    if product.category:
+        similar_products = Product.query.filter(
+            Product.category == product.category,
+            Product.id != product.id
+        ).limit(4).all()
+    else:
+        # If no category, get random products
+        similar_products = Product.query.filter(Product.id != product.id).order_by(func.random()).limit(4).all()
+    
+    # Get seller information
+    seller = User.query.get(product.seller_id)
+    
+    return render_template('product_detail.html', 
+                         product=product, 
+                         similar_products=similar_products,
+                         user_role=session.get('role'),
+                         is_logged_in='user_id' in session,
+                         seller=seller)
+
+# --- Cart Management (User) ---
+@app.route('/add_to_cart/<int:product_id>', methods=['POST'])
+@login_required
+@role_required('user')
+def add_to_cart(product_id):
+    quantity = int(request.form.get('quantity', 1))
+    
+    # Track cart addition for demand metrics
+    update_product_demand(product_id, cart_add=True)
+    
+    cart_item = CartItem.query.filter_by(user_id=session['user_id'], product_id=product_id).first()
+    if cart_item:
+        cart_item.quantity += quantity
+        flash('Cart updated successfully!', 'success')
+    else:
+        cart_item = CartItem(user_id=session['user_id'], product_id=product_id, quantity=quantity)
+        db.session.add(cart_item)
+        flash('Item added to cart!', 'success')
+    db.session.commit()
+    return redirect(url_for('cart'))
+
+@app.route('/cart')
+@login_required
+@role_required('user')
+def cart():
+    cart_items = CartItem.query.filter_by(user_id=session['user_id']).all()
+    total_price = sum(item.product.price * item.quantity for item in cart_items)
+    return render_template('cart.html', cart_items=cart_items, total_price=total_price)
+
+@app.route('/remove_from_cart/<int:cart_item_id>', methods=['POST'])
+def remove_from_cart(cart_item_id):
+    if 'user_id' not in session or session.get('role') != 'user':
+        return redirect('/login')
+    cart_item = CartItem.query.get_or_404(cart_item_id)
+    if cart_item.user_id != session['user_id']:
+        return 'Unauthorized', 403
+    db.session.delete(cart_item)
+    db.session.commit()
+    return redirect('/cart')
+
+@app.route('/checkout', methods=['GET'])
+@login_required
+@role_required('user')
+def checkout():
+    cart_items = CartItem.query.filter_by(user_id=session['user_id']).all()
+    if not cart_items:
+        flash('Your cart is empty.', 'error')
+        return redirect(url_for('cart'))
+    
+    total_price = sum(item.product.price * item.quantity for item in cart_items)
+    user = User.query.get(session['user_id'])
+    
+    return render_template('checkout.html', cart_items=cart_items, total_price=total_price, user=user)
+
+@app.route('/payment', methods=['POST'])
+@login_required
+@role_required('user')
+def payment():
+    # Get cart items to create an order
+    cart_items = CartItem.query.filter_by(user_id=session['user_id']).all()
+    if not cart_items:
+        flash('Your cart is empty.', 'error')
+        return redirect(url_for('cart'))
+    
+    # Calculate total
+    total_amount = sum(item.product.price * item.quantity for item in cart_items)
+    
+    # Get payment details from form
+    payment_method = request.form.get('payment_method', 'Credit Card')
+    
+    # Create the order
+    order = Order(user_id=session['user_id'], total_amount=total_amount)
+    db.session.add(order)
+    # Commit the order to get its ID
+    db.session.commit()
+    
+    # Add order items and track purchases
+    for cart_item in cart_items:
+        order_item = OrderItem(
+            order_id=order.id,
+            product_id=cart_item.product_id,
+            quantity=cart_item.quantity,
+            price=cart_item.product.price
+        )
+        db.session.add(order_item)
+        
+        # Track purchase for demand metrics
+        for _ in range(cart_item.quantity):
+            update_product_demand(cart_item.product_id, purchase=True)
+    
+    # Create a transaction record
+    transaction = Transaction(
+        order_id=order.id,
+        amount=total_amount,
+        payment_method=payment_method,
+        transaction_id=f"TXN-{uuid.uuid4().hex[:10].upper()}"
+    )
+    db.session.add(transaction)
+    
+    # Clear the cart
+    for cart_item in cart_items:
+        db.session.delete(cart_item)
+    
+    # Mark the order as paid
+    order.status = 'Paid'
+    
+    # Commit all remaining changes
+    db.session.commit()
+    
+    return redirect(url_for('order_confirmation', order_id=order.id))
+
+@app.route('/order/confirmation/<int:order_id>')
+@login_required
+def order_confirmation(order_id):
+    order = Order.query.get_or_404(order_id)
+    
+    # Check if the order belongs to the current user
+    if order.user_id != session['user_id'] and session.get('role') != 'admin':
+        flash('Unauthorized access', 'error')
+        return redirect(url_for('dashboard'))
+    
+    # Get the transaction
+    transaction = Transaction.query.filter_by(order_id=order.id).first()
+    
+    return render_template('order_confirmation.html', order=order, transaction=transaction)
+
+# --- Order History Pages ---
+@app.route('/order_history')
+@login_required
+def order_history():
+    user = User.query.get(session['user_id'])
+    
+    if user.role == 'user':
+        # For users: Show orders they've placed
+        orders = Order.query.filter_by(user_id=user.id).order_by(Order.order_date.desc()).all()
+        return render_template('order_history.html', orders=orders, user=user)
+    
+    elif user.role == 'seller':
+        # For sellers: Show orders containing their products
+        # First, get all products by this seller
+        seller_products = Product.query.filter_by(seller_id=user.id).all()
+        seller_product_ids = [product.id for product in seller_products]
+        
+        # Then find order items containing these products
+        order_items = OrderItem.query.filter(OrderItem.product_id.in_(seller_product_ids)).all()
+        
+        # Get the unique orders
+        order_ids = set(item.order_id for item in order_items)
+        orders = Order.query.filter(Order.id.in_(order_ids)).order_by(Order.order_date.desc()).all()
+        
+        return render_template('seller_order_history.html', orders=orders, order_items=order_items, user=user)
+    
+    else:  # admin
+        # For admin: Show all orders
+        orders = Order.query.order_by(Order.order_date.desc()).all()
+        return render_template('order_history.html', orders=orders, user=user)
+
+@app.route('/order_detail/<int:order_id>')
+@login_required
+def order_detail(order_id):
+    order = Order.query.get_or_404(order_id)
+    user = User.query.get(session['user_id'])
+    
+    # For users: Check if the order belongs to them
+    if user.role == 'user' and order.user_id != user.id:
+        flash('Unauthorized access', 'error')
+        return redirect(url_for('order_history'))
+    
+    # For sellers: Check if any products in the order belong to them
+    elif user.role == 'seller':
+        seller_products = Product.query.filter_by(seller_id=user.id).all()
+        seller_product_ids = [product.id for product in seller_products]
+        
+        # Check if any order items contain seller's products
+        seller_items = [item for item in order.items if item.product_id in seller_product_ids]
+        
+        if not seller_items:
+            flash('Unauthorized access', 'error')
+            return redirect(url_for('order_history'))
+    
+    # Get the transaction
+    transaction = Transaction.query.filter_by(order_id=order.id).first()
+    
+    return render_template('order_detail.html', order=order, transaction=transaction, user=user)
+
+@app.route('/update_order_status/<int:order_id>', methods=['POST'])
+@login_required
+@role_required('seller', 'admin')
+def update_order_status(order_id):
+    order = Order.query.get_or_404(order_id)
+    new_status = request.form.get('status')
+    
+    if new_status in ['Pending', 'Paid', 'Shipped', 'Delivered', 'Cancelled']:
+        order.status = new_status
+        db.session.commit()
+        flash('Order status updated successfully!', 'success')
+    else:
+        flash('Invalid status value', 'error')
+    
+    return redirect(url_for('order_detail', order_id=order.id))
+
+# --- Chat System (User & Seller) ---
+@app.route('/chat/<int:other_user_id>', methods=['GET', 'POST'])
+def chat(other_user_id):
+    if 'user_id' not in session:
+        return redirect('/login')
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+    other_user = User.query.get_or_404(other_user_id)
+    if request.method == 'POST':
+        content = request.form['content']
+        message = Message(sender_id=user_id, receiver_id=other_user_id, content=content)
+        db.session.add(message)
+        db.session.commit()
+    
+    # Mark all messages from the other user as read
+    unread_messages = Message.query.filter_by(sender_id=other_user_id, receiver_id=user_id, read=False).all()
+    for message in unread_messages:
+        message.read = True
+    db.session.commit()
+    
+    # Count total unread messages for the navbar
+    unread_message_count = Message.query.filter_by(
+        receiver_id=user_id,
+        read=False
+    ).count()
+    
+    messages = Message.query.filter(
+        ((Message.sender_id == user_id) & (Message.receiver_id == other_user_id)) |
+        ((Message.sender_id == other_user_id) & (Message.receiver_id == user_id))
+    ).order_by(Message.timestamp).all()
+    
+    return render_template('chat.html', messages=messages, other_user=other_user, user=user, 
+                          unread_message_count=unread_message_count)
+
+# --- List Users for Chat (for buyers and sellers) ---
+@app.route('/users_for_chat')
+def users_for_chat():
+    if 'user_id' not in session:
+        return redirect('/login')
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+    
+    # Get all users that the current user has had a conversation with
+    chat_partners = db.session.query(User).join(
+        Message, 
+        or_(
+            and_(Message.sender_id == user_id, Message.receiver_id == User.id),
+            and_(Message.receiver_id == user_id, Message.sender_id == User.id)
+        )
+    ).distinct().all()
+    
+    # If there are no chat partners but the user wants to see available users
+    if not chat_partners:
+        if user.role == 'user':
+            # Buyers can chat with sellers
+            chat_partners = User.query.filter_by(role='seller').all()
+        elif user.role == 'seller':
+            # Sellers can chat with buyers
+            chat_partners = User.query.filter_by(role='user').all()
+    
+    # Get unread message counts for each user
+    unread_counts = {}
+    for partner in chat_partners:
+        unread_count = Message.query.filter_by(
+            sender_id=partner.id, 
+            receiver_id=user_id,
+            read=False
+        ).count()
+        unread_counts[partner.id] = unread_count
+    
+    return render_template('users_for_chat.html', users=chat_partners, unread_counts=unread_counts)
+
+# --- Chatbot System ---
+@app.route('/api/compare_products', methods=['GET'])
+def compare_products():
+    product1_id = request.args.get('product1_id', '')
+    product2_id = request.args.get('product2_id', '')
+    
+    if not product1_id or not product2_id:
+        return jsonify({'error': 'Both product IDs are required'})
+    
+    # Get both products
+    product1 = Product.query.get(product1_id)
+    product2 = Product.query.get(product2_id)
+    
+    if not product1 or not product2:
+        return jsonify({'error': 'One or both products not found'})
+    
+    # Convert to dictionaries
+    product1_dict = product1.to_dict()
+    product2_dict = product2.to_dict()
+    
+    return jsonify({
+        'product1': product1_dict,
+        'product2': product2_dict
+    })
+
+@app.route('/chatbot_query', methods=['POST'])
+def chatbot_query():
+    data = request.get_json()
+    user_message = data.get('query', '')
+    context = data.get('context', [])
+    
+    # Initialize response
+    response = {
+        'answer': '',
+        'suggested_products': []
+    }
+    
+    # Handle ALL sorting patterns upfront, regardless of category or format
+    # This is the most reliable approach since we're checking for any sorting-related patterns first
+    
+    # Check for low to high sorting patterns
+    if any(pattern in user_message.lower() for pattern in ['low to high', 'price low']):
+        products = Product.query.order_by(Product.price.asc()).limit(5).all()
+        response['answer'] = "Here are products sorted by price (low to high):"
+        response['suggested_products'] = [product.to_dict() for product in products]
+        return jsonify(response)
+    
+    # Check for high to low sorting patterns
+    if any(pattern in user_message.lower() for pattern in ['high to low', 'price high']):
+        products = Product.query.order_by(Product.price.desc()).limit(5).all()
+        response['answer'] = "Here are products sorted by price (high to low):"
+        response['suggested_products'] = [product.to_dict() for product in products]
+        return jsonify(response)
+    
+    # Check if we have product context (from product detail page)
+    product_context = None
+    for ctx in context:
+        if isinstance(ctx, dict) and ctx.get('type') == 'product':
+            product_context = ctx
+            break
+    
+    # If this is a product-specific query, add some specialized responses
+    if product_context:
+        product_id = product_context.get('id')
+        product_name = product_context.get('name')
+        product_category = product_context.get('category')
+        
+        # Handle questions about the current product
+        if re.search(r'(features|specs|details|about)\s+(this|the|current)\s+product', user_message.lower()):
+            product = Product.query.get(product_id)
+            if product:
+                response['answer'] = f"Here are the details about {product.name}:\n"
+                response['answer'] += f"Category: {product.category}\n"
+                response['answer'] += f"Price: ₹{product.price:.2f}\n"
+                response['answer'] += f"Description: {product.description}"
+                return jsonify(response)
+        
+        # Handle questions about similar products
+        if re.search(r'(similar|alternatives|like this|related)', user_message.lower()):
+            if product_category:
+                similar_products = Product.query.filter(
+                    Product.category == product_category,
+                    Product.id != product_id
+                ).limit(4).all()
+                
+                if similar_products:
+                    response['answer'] = f"Here are some similar products in the {product_category} category:"
+                    response['suggested_products'] = [p.to_dict() for p in similar_products]
+                    return jsonify(response)
+                else:
+                    # If no similar products found, show some random products
+                    response['answer'] = f"I couldn't find other products in the {product_category} category. Here are some popular products you might like:"
+                    random_products = Product.query.order_by(func.random()).limit(3).all()
+                    response['suggested_products'] = [p.to_dict() for p in random_products]
+                    return jsonify(response)
+        
+        # Handle questions about price comparison
+        if re.search(r'(cheaper|expensive|cost less|better price|compare price)', user_message.lower()):
+            product = Product.query.get(product_id)
+            if product:
+                cheaper_products = Product.query.filter(
+                    Product.category == product_category,
+                    Product.price < product.price,
+                    Product.id != product_id
+                ).order_by(Product.price.desc()).limit(3).all()
+                
+                more_expensive_products = Product.query.filter(
+                    Product.category == product_category,
+                    Product.price > product.price,
+                    Product.id != product_id
+                ).order_by(Product.price.asc()).limit(3).all()
+                
+                if cheaper_products or more_expensive_products:
+                    response['answer'] = f"Here's a price comparison with other {product_category} products:"
+                    all_comparable = []
+                    
+                    if cheaper_products:
+                        response['answer'] += f"\n\nCheaper alternatives to {product_name}:"
+                        all_comparable.extend(cheaper_products)
+                    
+                    if more_expensive_products:
+                        response['answer'] += f"\n\nMore premium options than {product_name}:"
+                        all_comparable.extend(more_expensive_products)
+                    
+                    response['suggested_products'] = [p.to_dict() for p in all_comparable]
+                    return jsonify(response)
+                else:
+                    # If no price comparisons found, show some random products
+                    response['answer'] = f"I couldn't find products to compare with {product_name}. Here are some other products you might be interested in:"
+                    random_products = Product.query.filter(Product.id != product_id).order_by(func.random()).limit(3).all()
+                    response['suggested_products'] = [p.to_dict() for p in random_products]
+                    return jsonify(response)
+        
+        # For category-specific queries, prioritize the current product's category
+        for category_pattern in [r'show me (\w+)s', r'(\w+)s? low to high', r'(\w+)s? high to low', r'newest (\w+)s?']:
+            category_match = re.search(category_pattern, user_message.lower())
+            if category_match:
+                category = category_match.group(1).lower()
+                # If asking about the current product's category or a generic term
+                if category in ['product', 'item'] and product_category:
+                    # Replace generic terms with the actual product category
+                    modified_message = user_message.lower().replace(category, product_category.lower())
+                    # Process the modified message - but don't call the function directly to avoid recursion
+                    # Instead handle this case right here
+                    modified_category = product_category
+                    
+                    # Check which pattern matched and handle accordingly
+                    if 'low to high' in modified_message:
+                        products = Product.query.filter(
+                            Product.category == modified_category
+                        ).order_by(Product.price.asc()).limit(5).all()
+                        
+                        if products:
+                            response['answer'] = f"Here are {modified_category}s sorted by price (low to high):"
+                            response['suggested_products'] = [p.to_dict() for p in products]
+                        else:
+                            response['answer'] = f"I couldn't find any products in the {modified_category} category. Here are some popular products instead:"
+                            random_products = Product.query.order_by(func.random()).limit(3).all()
+                            response['suggested_products'] = [p.to_dict() for p in random_products]
+                        return jsonify(response)
+                        
+                    elif 'high to low' in modified_message:
+                        products = Product.query.filter(
+                            Product.category == modified_category
+                        ).order_by(Product.price.desc()).limit(5).all()
+                        
+                        if products:
+                            response['answer'] = f"Here are {modified_category}s sorted by price (high to low):"
+                            response['suggested_products'] = [p.to_dict() for p in products]
+                        else:
+                            response['answer'] = f"I couldn't find any products in the {modified_category} category. Here are some popular products instead:"
+                            random_products = Product.query.order_by(func.random()).limit(3).all()
+                            response['suggested_products'] = [p.to_dict() for p in random_products]
+                        return jsonify(response)
+                        
+                    elif 'show me' in modified_message:
+                        products = Product.query.filter(
+                            Product.category == modified_category
+                        ).limit(5).all()
+                        
+                        if products:
+                            response['answer'] = f"Here are some {modified_category}s I found for you:"
+                            response['suggested_products'] = [p.to_dict() for p in products]
+                        else:
+                            response['answer'] = f"I couldn't find any products in the {modified_category} category. Here are some popular products instead:"
+                            random_products = Product.query.order_by(func.random()).limit(3).all()
+                            response['suggested_products'] = [p.to_dict() for p in random_products]
+                        return jsonify(response)
+    
+    # Add more comprehensive pattern matching for sorting
+    sort_patterns = [
+        # Direct sorting commands
+        (r'^low to high$', 'asc', None),
+        (r'^high to low$', 'desc', None),
+        (r'^price low to high$', 'asc', None),
+        (r'^price high to low$', 'desc', None),
+        (r'^products low to high$', 'asc', None),
+        (r'^products high to low$', 'desc', None),
+        (r'^sort by price low to high$', 'asc', None),
+        (r'^sort by price high to low$', 'desc', None),
+        (r'^sort by price \(low to high\)$', 'asc', None),
+        (r'^sort by price \(high to low\)$', 'desc', None),
+        
+        # Category specific sorting
+        (r'(\w+)s?\s+low\s+to\s+high', 'asc', 1),
+        (r'(\w+)s?\s+high\s+to\s+low', 'desc', 1),
+        (r'sort\s+(\w+)s?\s+by\s+price\s+low', 'asc', 1),
+        (r'sort\s+(\w+)s?\s+by\s+price\s+high', 'desc', 1),
+        
+        # Additional patterns
+        (r'sort\s+by\s+price\s+low\s+to\s+high\s+(\w+)', 'asc', 1),
+        (r'sort\s+by\s+price\s+high\s+to\s+low\s+(\w+)', 'desc', 1),
+    ]
+    
+    # Search patterns for direct category queries
+    category_patterns = [
+        (r'show me (\w+)s?', 1),
+        (r'find (\w+)s?', 1),
+        (r'search for (\w+)s?', 1),
+        (r'looking for (\w+)s?', 1),
+        (r'get (\w+)s?', 1),
+        (r'(\w+)s?\s+products', 1),
+    ]
+    
+    # Check sort patterns FIRST (before category patterns)
+    for pattern, sort_order, category_group in sort_patterns:
+        match = re.search(pattern, user_message.lower())
+        if match:
+            # If category group is None, it's a general sort
+            if category_group is None:
+                products = Product.query.order_by(
+                    Product.price.asc() if sort_order == 'asc' else Product.price.desc()
+                ).limit(5).all()
+                
+                if products:
+                    sort_description = "low to high" if sort_order == 'asc' else "high to low"
+                    response['answer'] = f"Here are products sorted by price ({sort_description}):"
+                    response['suggested_products'] = [product.to_dict() for product in products]
+                    return jsonify(response)
+            else:
+                # Extract category if it exists in the pattern
+                category = match.group(category_group).capitalize()
+                category_lower = category.lower()
+                
+                print(f"Sort pattern detected: '{pattern}' with category '{category_lower}'")
+                
+                # Try exact category match
+                products = Product.query.filter(
+                    or_(
+                        func.lower(Product.category) == category_lower,
+                        func.lower(Product.category) == f"{category_lower}s",
+                        func.lower(Product.category).like(f"{category_lower}%")
+                    )
+                ).order_by(
+                    Product.price.asc() if sort_order == 'asc' else Product.price.desc()
+                ).limit(5).all()
+                
+                # Try substring match if no exact match
+                if not products:
+                    products = Product.query.filter(
+                        func.lower(Product.category).like(f"%{category_lower}%")
+                    ).order_by(
+                        Product.price.asc() if sort_order == 'asc' else Product.price.desc()
+                    ).limit(5).all()
+                
+                # Fallback to all products for generic terms
+                if not products and category_lower in ["product", "item", "all"]:
+                    products = Product.query.order_by(
+                        Product.price.asc() if sort_order == 'asc' else Product.price.desc()
+                    ).limit(5).all()
+                
+                # Special case handling for common categories with no products
+                if not products and category_lower in ["phone", "phones", "mobile", "mobiles"]:
+                    response['answer'] = "I couldn't find any phones in our inventory. Here are some other products that might interest you:"
+                    products = Product.query.order_by(func.random()).limit(5).all()
+                    response['suggested_products'] = [product.to_dict() for product in products]
+                    return jsonify(response)
+                    
+                if not products and category_lower in ["laptop", "laptops", "computer", "computers"]:
+                    response['answer'] = "I couldn't find any laptops in our inventory. Here are some other products that might interest you:"
+                    products = Product.query.order_by(func.random()).limit(5).all()
+                    response['suggested_products'] = [product.to_dict() for product in products]
+                    return jsonify(response)
+                
+                if products:
+                    sort_description = "low to high" if sort_order == 'asc' else "high to low"
+                    response['answer'] = f"Here are {category}s sorted by price ({sort_description}):"
+                    response['suggested_products'] = [product.to_dict() for product in products]
+                else:
+                    response['answer'] = f"I couldn't find any products in the {category} category. Here are some popular products instead:"
+                    random_products = Product.query.order_by(func.random()).limit(5).all()
+                    response['suggested_products'] = [product.to_dict() for product in random_products]
+                
+                return jsonify(response)
+    
+    # THEN check category patterns (after checking sort patterns)
+    for pattern, category_group in category_patterns:
+        match = re.search(pattern, user_message.lower())
+        if match:
+            category = match.group(category_group).capitalize()
+            category_lower = category.lower()
+            
+            print(f"Category search pattern detected: '{pattern}' with category '{category_lower}'")
+            
+            # Special handling for common categories with no products
+            if category_lower in ["phone", "phones", "mobile", "mobiles"]:
+                response['answer'] = "I couldn't find any phones in our inventory. Here are some other products that might interest you:"
+                products = Product.query.order_by(func.random()).limit(5).all()
+                response['suggested_products'] = [product.to_dict() for product in products]
+                return jsonify(response)
+                
+            if category_lower in ["laptop", "laptops", "computer", "computers"]:
+                response['answer'] = "I couldn't find any laptops in our inventory. Here are some other products that might interest you:"
+                products = Product.query.order_by(func.random()).limit(5).all()
+                response['suggested_products'] = [product.to_dict() for product in products]
+                return jsonify(response)
+            
+            # Try exact category match
+            products = Product.query.filter(
+                or_(
+                    func.lower(Product.category) == category_lower,
+                    func.lower(Product.category) == f"{category_lower}s",
+                    func.lower(Product.category).like(f"{category_lower}%")
+                )
+            ).limit(5).all()
+            
+            # Try substring match if no exact match
+            if not products:
+                products = Product.query.filter(
+                    func.lower(Product.category).like(f"%{category_lower}%")
+                ).limit(5).all()
+            
+            if products:
+                response['answer'] = f"Here are some {category}s I found for you:"
+                response['suggested_products'] = [product.to_dict() for product in products]
+            else:
+                response['answer'] = f"I couldn't find any products in the {category} category. Here are some popular products instead:"
+                random_products = Product.query.order_by(func.random()).limit(5).all()
+                response['suggested_products'] = [product.to_dict() for product in random_products]
+            
+            return jsonify(response)
+    
+    # Check for simple category search pattern
+    category_search_match = re.search(r'show me (\w+)s', user_message.lower())
+    if category_search_match:
+        category = category_search_match.group(1).capitalize()
+        # Get products from this category using exact matching
+        products = Product.query.filter(
+            or_(
+                Product.category == category,
+                Product.category == f"{category}s"
+            )
+        ).limit(5).all()
+        
+        if products:
+            response['answer'] = f"Here are some {category}s I found for you:"
+            response['suggested_products'] = [product.to_dict() for product in products]
+        else:
+            response['answer'] = f"I couldn't find any products in the {category} category. Would you like to see some of our popular products instead?"
+            # Suggest some random products as fallback
+            random_products = Product.query.order_by(func.random()).limit(3).all()
+            response['suggested_products'] = [product.to_dict() for product in random_products]
+        
+        return jsonify(response)
+    
+    # Check for generic sorting pattern
+    sort_match = re.search(r'sort.+by\s+(\w+)', user_message.lower())
+    if sort_match:
+        sort_criterion = sort_match.group(1).lower()
+        category_match = re.search(r'(\w+)s sorted', user_message.lower())
+        category = category_match.group(1).capitalize() if category_match else None
+        
+        query = Product.query
+        
+        # Filter by category if specified using exact matching
+        if category:
+            query = query.filter(
+                or_(
+                    Product.category == category,
+                    Product.category == f"{category}s"
+                )
+            )
+        
+        # Apply sorting
+        if 'price' in sort_criterion and 'low' in user_message.lower():
+            query = query.order_by(Product.price.asc())
+        elif 'price' in sort_criterion and 'high' in user_message.lower():
+            query = query.order_by(Product.price.desc())
+        elif 'new' in sort_criterion or 'latest' in sort_criterion:
+            query = query.order_by(Product.id.desc())  # Assuming newer products have higher IDs
+        else:
+            # Default sort by popularity (based on ratings)
+            query = query.order_by(Product.id.desc())
+        
+        products = query.limit(5).all()
+        
+        if products:
+            response['answer'] = f"Here are the products sorted by {sort_criterion}:"
+            response['suggested_products'] = [product.to_dict() for product in products]
+        else:
+            response['answer'] = "I couldn't find any products matching your criteria."
+        
+        return jsonify(response)
+    
+    # If we get here, use the existing chatbot patterns
+    # Product recommendation pattern
+    if re.search(r'recommend|suggest|show me', user_message.lower()):
+        # Extract product categories mentioned in the query
+        categories = []
+        for category in ['Phone', 'Laptop', 'Tablet', 'Headphone', 'Watch', 'Camera', 'Speaker', 'Game', 'Console']:
+            # Check for singular or plural form
+            if category.lower() in user_message.lower() or f"{category.lower()}s" in user_message.lower():
+                categories.append(category)
+        
+        # Extract price range if mentioned
+        price_range_match = re.search(r'under\s+[₹]?(\d+)', user_message.lower())
+        max_price = float(price_range_match.group(1)) if price_range_match else None
+        
+        # No conversion needed since prices are now stored as INR
+        
+        # Get product suggestions based on filters
+        query = Product.query
+        
+        if categories:
+            # Use exact category matching
+            category_filters = []
+            for category in categories:
+                category_filters.append(Product.category == category)
+                category_filters.append(Product.category == f"{category}s")
+            query = query.filter(or_(*category_filters))
+        
+        if max_price:
+            query = query.filter(Product.price <= max_price)
+        
+        suggested_products = query.limit(3).all()
+        
+        # If no filtered products found, get some random ones
+        if not suggested_products:
+            suggested_products = Product.query.order_by(func.random()).limit(3).all()
+        
+        response['answer'] = "Based on your interests, you might like these products:"
+        response['suggested_products'] = [product.to_dict() for product in suggested_products]
+    
+    # Search pattern
+    elif re.search(r'search|find|looking for', user_message.lower()):
+        # Extract search terms (excluding common words)
+        stop_words = set(['search', 'find', 'looking', 'for', 'products', 'items', 'the', 'a', 'an', 'me', 'show'])
+        search_terms = [word for word in user_message.lower().split() if word not in stop_words]
+        
+        # Extract category if mentioned
+        category = None
+        for cat in ['Phone', 'Laptop', 'Tablet', 'Headphone', 'Watch', 'Camera', 'Speaker', 'Game', 'Console']:
+            # Check for singular or plural form
+            if cat.lower() in user_message.lower() or f"{cat.lower()}s" in user_message.lower():
+                category = cat
+                break
+        
+        # Create the search query
+        if search_terms:
+            query = Product.query
+            
+            # Filter by category if specified using exact matching
+            if category:
+                query = query.filter(
+                    or_(
+                        Product.category == category,
+                        Product.category == f"{category}s"
+                    )
+                )
+            
+            # Search in name and description
+            search_filters = []
+            for term in search_terms:
+                if len(term) > 2:  # Only use terms with more than 2 characters
+                    search_filters.append(Product.name.ilike(f'%{term}%'))
+                    search_filters.append(Product.description.ilike(f'%{term}%'))
+            
+            if search_filters:
+                query = query.filter(or_(*search_filters))
+                
+            found_products = query.limit(5).all()
+            
+            if found_products:
+                if category:
+                    response['answer'] = f"Here are the {category}s I found for you:"
+                else:
+                    response['answer'] = "Here are the products I found for you:"
+                response['suggested_products'] = [product.to_dict() for product in found_products]
+            else:
+                if category:
+                    # If no specific matches found, suggest some products from the category
+                    category_products = Product.query.filter(
+                        or_(
+                            Product.category == category,
+                            Product.category == f"{category}s"
+                        )
+                    ).limit(3).all()
+                    if category_products:
+                        response['answer'] = f"I couldn't find exactly what you're looking for, but here are some {category}s you might like:"
+                        response['suggested_products'] = [product.to_dict() for product in category_products]
+                    else:
+                        response['answer'] = f"I couldn't find any {category}s. Would you like to see our featured products instead?"
+                else:
+                    response['answer'] = "I couldn't find products matching your search. Would you like to browse our categories instead?"
+        else:
+            response['answer'] = "What kind of products are you interested in? You can ask about phones, laptops, headphones, and more!"
+    
+    # Default response pattern
+    else:
+        response['answer'] = "I'm here to help you find products and answer questions about our store. You can ask me to search for products, recommend items, or provide information about shipping and returns."
+    
+    # Look for "phone" or "phone" in the user message to check if the user might be trying to use a category-specific sort
+    # If a sort pattern is used with "phones", the category matcher is capturing it but not sorting
+    if re.search(r'phone', user_message.lower()):
+        # Look for "sort", "low to high", "high to low", "price" keywords that indicate sorting
+        if re.search(r'(sort|price|low to high|high to low)', user_message.lower()):
+            # It's likely a sort by price command for phones
+            if re.search(r'(low to high|price.*low)', user_message.lower()):
+                # Sort low to high
+                products = Product.query.filter(
+                    or_(
+                        func.lower(Product.category) == "phone",
+                        func.lower(Product.category) == "phones",
+                        func.lower(Product.category).like("phone%"),
+                        func.lower(Product.category).like("%phone%")
+                    )
+                ).order_by(Product.price.asc()).limit(5).all()
+                
+                if products:
+                    response['answer'] = "Here are phones sorted by price (low to high):"
+                    response['suggested_products'] = [product.to_dict() for product in products]
+                else:
+                    response['answer'] = "I couldn't find any phones in our inventory. Here are some other products sorted by price (low to high):"
+                    products = Product.query.order_by(Product.price.asc()).limit(5).all()
+                    response['suggested_products'] = [product.to_dict() for product in products]
+                return jsonify(response)
+            
+            if re.search(r'(high to low|price.*high)', user_message.lower()):
+                # Sort high to low
+                products = Product.query.filter(
+                    or_(
+                        func.lower(Product.category) == "phone",
+                        func.lower(Product.category) == "phones",
+                        func.lower(Product.category).like("phone%"),
+                        func.lower(Product.category).like("%phone%")
+                    )
+                ).order_by(Product.price.desc()).limit(5).all()
+                
+                if products:
+                    response['answer'] = "Here are phones sorted by price (high to low):"
+                    response['suggested_products'] = [product.to_dict() for product in products]
+                else:
+                    response['answer'] = "I couldn't find any phones in our inventory. Here are some other products sorted by price (high to low):"
+                    products = Product.query.order_by(Product.price.desc()).limit(5).all()
+                    response['suggested_products'] = [product.to_dict() for product in products]
+                return jsonify(response)
+    
+    # Special handling for general "Sort by price" commands
+    sort_by_price_match = re.search(r'sort by price', user_message.lower(), re.IGNORECASE)
+    if sort_by_price_match:
+        # Check for low to high or high to low
+        if re.search(r'(low to high|\(low to high\))', user_message.lower(), re.IGNORECASE):
+            products = Product.query.order_by(Product.price.asc()).limit(5).all()
+            response['answer'] = "Here are products sorted by price (low to high):"
+            response['suggested_products'] = [product.to_dict() for product in products]
+            return jsonify(response)
+        elif re.search(r'(high to low|\(high to low\))', user_message.lower(), re.IGNORECASE):
+            products = Product.query.order_by(Product.price.desc()).limit(5).all()
+            response['answer'] = "Here are products sorted by price (high to low):"
+            response['suggested_products'] = [product.to_dict() for product in products]
+            return jsonify(response)
+    
+    # Handle category-specific sorting
+    if re.match(r'^(\w+)s?\s+low\s+to\s+high$', user_message.lower()):
+        # For example "phones low to high"
+        # Rather than filter by category, we'll just sort all products by price
+        products = Product.query.order_by(Product.price.asc()).limit(5).all()
+        response['answer'] = "Here are products sorted by price (low to high):"
+        response['suggested_products'] = [product.to_dict() for product in products]
+        return jsonify(response)
+    
+    if re.match(r'^(\w+)s?\s+high\s+to\s+low$', user_message.lower()):
+        # For example "phones high to low"
+        # Rather than filter by category, we'll just sort all products by price
+        products = Product.query.order_by(Product.price.desc()).limit(5).all()
+        response['answer'] = "Here are products sorted by price (high to low):"
+        response['suggested_products'] = [product.to_dict() for product in products]
+        return jsonify(response)
+    
+    # Handle price range filtering commands
+    if user_message.lower() == "show products under 10000":
+        products = Product.query.filter(Product.price < 10000).order_by(Product.price.asc()).limit(5).all()
+        if products:
+            response['answer'] = "Here are products under ₹10,000:"
+            response['suggested_products'] = [product.to_dict() for product in products]
+        else:
+            response['answer'] = "I couldn't find any products under ₹10,000. Here are some popular products instead:"
+            products = Product.query.order_by(func.random()).limit(5).all()
+            response['suggested_products'] = [product.to_dict() for product in products]
+        return jsonify(response)
+    
+    if user_message.lower() == "show products between 10000 and 20000":
+        products = Product.query.filter(Product.price >= 10000, Product.price <= 20000).order_by(Product.price.asc()).limit(5).all()
+        if products:
+            response['answer'] = "Here are products between ₹10,000 and ₹20,000:"
+            response['suggested_products'] = [product.to_dict() for product in products]
+        else:
+            response['answer'] = "I couldn't find any products in this price range. Here are some popular products instead:"
+            products = Product.query.order_by(func.random()).limit(5).all()
+            response['suggested_products'] = [product.to_dict() for product in products]
+        return jsonify(response)
+    
+    if user_message.lower() == "show products between 20000 and 50000":
+        products = Product.query.filter(Product.price >= 20000, Product.price <= 50000).order_by(Product.price.asc()).limit(5).all()
+        if products:
+            response['answer'] = "Here are products between ₹20,000 and ₹50,000:"
+            response['suggested_products'] = [product.to_dict() for product in products]
+        else:
+            response['answer'] = "I couldn't find any products in this price range. Here are some popular products instead:"
+            products = Product.query.order_by(func.random()).limit(5).all()
+            response['suggested_products'] = [product.to_dict() for product in products]
+        return jsonify(response)
+    
+    if user_message.lower() == "show products above 50000":
+        products = Product.query.filter(Product.price > 50000).order_by(Product.price.asc()).limit(5).all()
+        if products:
+            response['answer'] = "Here are products above ₹50,000:"
+            response['suggested_products'] = [product.to_dict() for product in products]
+        else:
+            response['answer'] = "I couldn't find any products above ₹50,000. Here are some popular products instead:"
+            products = Product.query.order_by(func.random()).limit(5).all()
+            response['suggested_products'] = [product.to_dict() for product in products]
+        return jsonify(response)
+    
+    return jsonify(response)
+
+@app.route('/api/search_products', methods=['GET'])
+def search_products():
+    query = request.args.get('query', '')
+    category = request.args.get('category', '')
+    
+    # Build the search query
+    search_query = Product.query
+    
+    # Filter by category if provided
+    if category:
+        search_query = search_query.filter(func.lower(Product.category) == category.lower())
+    
+    # Search for products by name using case-insensitive search
+    search_query = search_query.filter(func.lower(Product.name).like(f'%{query.lower()}%'))
+    
+    # Get results
+    products = search_query.limit(5).all()
+    
+    # Convert to JSON-serializable format
+    product_list = [product.to_dict() for product in products]
+    
+    return jsonify({'products': product_list})
+
+@app.route('/api/category_products', methods=['GET'])
+def category_products():
+    category = request.args.get('category', '')
+    product_id = request.args.get('product_id', '')
+    
+    if not category:
+        return jsonify({'error': 'Category is required', 'products': []})
+    
+    # Get products in the same category, excluding the current product
+    query = Product.query.filter(Product.category == category)
+    
+    if product_id:
+        query = query.filter(Product.id != product_id)
+    
+    products = query.limit(4).all()
+    
+    # Convert to JSON-serializable format
+    product_list = [product.to_dict() for product in products]
+    
+    return jsonify({'products': product_list})
+
+# Dynamic Pricing Agent Routes
+@app.route('/pricing/dashboard')
+@login_required
+@role_required('admin', 'seller')
+def pricing_dashboard():
+    """Dashboard for dynamic pricing"""
+    # Get all pending price change suggestions
+    suggestions = get_pricing_suggestions()
+    
+    # Get product info
+    products = {}
+    for suggestion in suggestions:
+        if suggestion.product_id not in products:
+            product = Product.query.get(suggestion.product_id)
+            if product:
+                products[suggestion.product_id] = product
+    
+    # Get all pricing rules
+    rules = PricingRule.query.all()
+    
+    # Get all pricing models
+    models = PricingModel.query.all()
+    
+    # Categories for dropdown
+    categories = [
+        'Phone', 'Laptop', 'Tablet', 'Headphone', 'Earbuds', 
+        'Camera', 'Watch', 'TV', 'Home Appliance', 'Gaming', 
+        'Fashion', 'Beauty', 'Books', 'Sports', 'Other'
+    ]
+    
+    return render_template(
+        'pricing_dashboard.html',
+        suggestions=suggestions,
+        products=products,
+        rules=rules,
+        models=models,
+        categories=categories,
+        user=User.query.get(session['user_id'])
+    )
+
+@app.route('/pricing/apply/<int:log_id>', methods=['POST'])
+@login_required
+@role_required('admin', 'seller')
+def apply_pricing_suggestion(log_id):
+    """Apply a price change suggestion"""
+    log = PricingLog.query.get_or_404(log_id)
+    product = Product.query.get_or_404(log.product_id)
+    
+    # Check if the user is a seller and owns this product
+    if session['role'] == 'seller' and product.seller_id != session['user_id']:
+        flash('You can only modify prices for your own products', 'error')
+        return redirect(url_for('pricing_dashboard'))
+    
+    # Apply the price change
+    success = apply_price_change(
+        product_id=log.product_id,
+        new_price=log.suggested_price,
+        user_id=session['user_id'],
+        reason=f"Applied from suggestion: {log.reason}"
+    )
+    
+    if success:
+        flash(f'Price updated for {product.name}', 'success')
+    else:
+        flash('Failed to update price', 'error')
+    
+    return redirect(url_for('pricing_dashboard'))
+
+@app.route('/pricing/reject/<int:log_id>', methods=['POST'])
+@login_required
+@role_required('admin', 'seller')
+def reject_pricing_suggestion(log_id):
+    """Reject a price change suggestion"""
+    log = PricingLog.query.get_or_404(log_id)
+    product = Product.query.get_or_404(log.product_id)
+    
+    # Check if the user is a seller and owns this product
+    if session['role'] == 'seller' and product.seller_id != session['user_id']:
+        flash('You can only modify prices for your own products', 'error')
+        return redirect(url_for('pricing_dashboard'))
+    
+    # Mark as applied but with current price (effectively rejecting)
+    log.was_applied = True
+    log.actual_price = product.price  # Keep current price
+    log.applied_by = session['user_id']
+    log.applied_at = datetime.now()
+    db.session.commit()
+    
+    flash(f'Price change rejected for {product.name}', 'info')
+    return redirect(url_for('pricing_dashboard'))
+
+@app.route('/pricing/rules', methods=['GET', 'POST'])
+@login_required
+@role_required('admin')
+def pricing_rules():
+    """Manage pricing rules"""
+    if request.method == 'POST':
+        category = request.form.get('category')
+        if category == '':
+            category = None  # Default rule
+        
+        # Check if rule exists
+        rule = PricingRule.query.filter_by(category=category).first()
+        if not rule:
+            rule = PricingRule(category=category)
+        
+        # Update rule
+        rule.min_price_ratio = float(request.form.get('min_price_ratio', 0.8))
+        rule.max_price_ratio = float(request.form.get('max_price_ratio', 1.2))
+        rule.competitor_weight = float(request.form.get('competitor_weight', 0.3))
+        rule.inventory_weight = float(request.form.get('inventory_weight', 0.3))
+        rule.demand_weight = float(request.form.get('demand_weight', 0.4))
+        rule.max_daily_change = float(request.form.get('max_daily_change', 0.05))
+        rule.is_active = bool(request.form.get('is_active', False))
+        
+        db.session.add(rule)
+        db.session.commit()
+        
+        flash('Pricing rule updated successfully', 'success')
+        return redirect(url_for('pricing_rules'))
+    
+    # Get all rules
+    rules = PricingRule.query.all()
+    
+    # Categories for dropdown
+    categories = [
+        'Phone', 'Laptop', 'Tablet', 'Headphone', 'Earbuds', 
+        'Camera', 'Watch', 'TV', 'Home Appliance', 'Gaming', 
+        'Fashion', 'Beauty', 'Books', 'Sports', 'Other'
+    ]
+    
+    return render_template(
+        'pricing_rules.html',
+        rules=rules,
+        categories=categories,
+        user=User.query.get(session['user_id'])
+    )
+
+@app.route('/pricing/competitor', methods=['GET', 'POST'])
+@login_required
+@role_required('admin', 'seller')
+def competitor_prices():
+    """Manage competitor prices"""
+    if request.method == 'POST':
+        product_id = int(request.form.get('product_id'))
+        competitor_name = request.form.get('competitor_name')
+        competitor_product_name = request.form.get('competitor_product_name')
+        competitor_product_url = request.form.get('competitor_product_url')
+        price = float(request.form.get('price'))
+        
+        product = Product.query.get_or_404(product_id)
+        
+        # Check if the user is a seller and owns this product
+        if session['role'] == 'seller' and product.seller_id != session['user_id']:
+            flash('You can only add competitor prices for your own products', 'error')
+            return redirect(url_for('competitor_prices'))
+        
+        # Create a new competitor price entry
+        competitor_price = CompetitorPrice(
+            product_id=product_id,
+            competitor_name=competitor_name,
+            competitor_product_name=competitor_product_name,
+            competitor_product_url=competitor_product_url,
+            price=price
+        )
+        
+        db.session.add(competitor_price)
+        db.session.commit()
+        
+        flash('Competitor price added successfully', 'success')
+        return redirect(url_for('competitor_prices'))
+    
+    # Get products based on user role
+    if session['role'] == 'admin':
+        products = Product.query.all()
+    else:  # seller
+        products = Product.query.filter_by(seller_id=session['user_id']).all()
+    
+    # Get competitor prices for these products
+    competitor_prices = CompetitorPrice.query.filter(
+        CompetitorPrice.product_id.in_([p.id for p in products])
+    ).order_by(CompetitorPrice.competitor_name).all()
+    
+    return render_template(
+        'competitor_prices.html',
+        products=products,
+        competitor_prices=competitor_prices,
+        user=User.query.get(session['user_id'])
+    )
+
+@app.route('/pricing/competitor/delete/<int:competitor_price_id>', methods=['POST'])
+@login_required
+@role_required('admin', 'seller')
+def delete_competitor_price(competitor_price_id):
+    """Delete a competitor price entry"""
+    competitor_price = CompetitorPrice.query.get_or_404(competitor_price_id)
+    product = Product.query.get_or_404(competitor_price.product_id)
+    
+    # Check if the user is a seller and owns this product
+    if session['role'] == 'seller' and product.seller_id != session['user_id']:
+        flash('You can only delete competitor prices for your own products', 'error')
+        return redirect(url_for('competitor_prices'))
+    
+    db.session.delete(competitor_price)
+    db.session.commit()
+    
+    flash('Competitor price deleted successfully', 'success')
+    return redirect(url_for('competitor_prices'))
+
+@app.route('/pricing/inventory', methods=['GET', 'POST'])
+@login_required
+@role_required('admin', 'seller')
+def inventory_management():
+    """Manage product inventory"""
+    if request.method == 'POST':
+        product_id = int(request.form.get('product_id'))
+        quantity = int(request.form.get('quantity'))
+        
+        product = Product.query.get_or_404(product_id)
+        
+        # Check if the user is a seller and owns this product
+        if session['role'] == 'seller' and product.seller_id != session['user_id']:
+            flash('You can only update inventory for your own products', 'error')
+            return redirect(url_for('inventory_management'))
+        
+        # Update or create inventory record
+        inventory = ProductInventory.query.filter_by(product_id=product_id).first()
+        if not inventory:
+            inventory = ProductInventory(product_id=product_id)
+        
+        inventory.quantity = quantity
+        inventory.last_updated = datetime.now()
+        
+        db.session.add(inventory)
+        db.session.commit()
+        
+        flash('Inventory updated successfully', 'success')
+        return redirect(url_for('inventory_management'))
+    
+    # Get products based on user role
+    if session['role'] == 'admin':
+        products = Product.query.all()
+    else:  # seller
+        products = Product.query.filter_by(seller_id=session['user_id']).all()
+    
+    # Get inventory for these products
+    inventories = {
+        inv.product_id: inv 
+        for inv in ProductInventory.query.filter(
+            ProductInventory.product_id.in_([p.id for p in products])
+        ).all()
+    }
+    
+    return render_template(
+        'inventory_management.html',
+        products=products,
+        inventories=inventories,
+        user=User.query.get(session['user_id'])
+    )
+
+@app.route('/pricing/analysis', methods=['GET', 'POST'])
+@login_required
+@role_required('admin', 'seller')
+def price_analysis():
+    """Analyze prices for products"""
+    if request.method == 'POST':
+        product_id = int(request.form.get('product_id'))
+        
+        product = Product.query.get_or_404(product_id)
+        
+        # Check if the user is a seller and owns this product
+        if session['role'] == 'seller' and product.seller_id != session['user_id']:
+            flash('You can only analyze prices for your own products', 'error')
+            return redirect(url_for('price_analysis'))
+        
+        # Run price analysis for this product
+        prediction = predict_with_ml_model(product_id)
+        if not prediction:
+            prediction = calculate_optimal_price(product_id)
+        
+        if prediction:
+            # Log the suggestion
+            pricing_log = PricingLog(
+                product_id=product_id,
+                suggested_price=prediction['suggested_price'],
+                reason=prediction['reason']
+            )
+            db.session.add(pricing_log)
+            db.session.commit()
+            
+            flash('Price analysis completed successfully', 'success')
+        else:
+            flash('Failed to analyze price for this product', 'error')
+        
+        return redirect(url_for('price_analysis'))
+    
+    # Get products based on user role
+
+@app.route('/debug/routes')
+def debug_routes():
+    routes = []
+    for rule in app.url_map.iter_rules():
+        routes.append({
+            'endpoint': rule.endpoint,
+            'methods': ', '.join(rule.methods),
+            'path': str(rule)
+        })
+    return jsonify(routes)

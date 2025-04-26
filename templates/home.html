@@ -1,0 +1,2078 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - E-Commerce</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --bg-color: #f8f9fa;
+            --text-color: #333;
+            --border-radius: 8px;
+            --box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            padding-bottom: 2rem;
+        }
+        
+        .navbar {
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            background: linear-gradient(to right, #2c3e50, #3498db) !important;
+            padding: 12px 0;
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            letter-spacing: 0.5px;
+        }
+        
+        .nav-link {
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin: 0 5px;
+            padding: 8px 15px !important;
+            border-radius: var(--border-radius);
+        }
+        
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .hero-section {
+            background: linear-gradient(to right, #2c3e50, #3498db);
+            color: white;
+            text-align: center;
+            padding: 120px 0;
+            margin-bottom: 60px;
+            border-radius: 0 0 var(--border-radius) var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+        
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .hero-subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            font-weight: 300;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+        
+        .hero-btn {
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .hero-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+            border-color: #2980b9;
+        }
+        
+        .btn-secondary {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+        
+        .btn-secondary:hover {
+            background-color: #27ae60;
+            border-color: #27ae60;
+        }
+        
+        .features-section {
+            padding: 60px 0;
+        }
+        
+        .feature-card {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            background-color: rgba(52, 152, 219, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: var(--primary-color);
+            font-size: 2rem;
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card:hover .feature-icon {
+            background-color: var(--primary-color);
+            color: white;
+            transform: scale(1.1);
+        }
+        
+        .feature-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+        
+        .featured-products {
+            padding: 60px 0;
+            background-color: white;
+            margin-top: 60px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+        
+        .section-title {
+            text-align: center;
+            margin-bottom: 40px;
+            color: #2c3e50;
+            font-weight: 700;
+            position: relative;
+            padding-bottom: 15px;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(to right, #3498db, #2ecc71);
+            border-radius: 2px;
+        }
+        
+        .product-card {
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .product-img {
+            height: 200px;
+            width: 100%;
+            object-fit: cover;
+        }
+        
+        .product-body {
+            padding: 20px;
+        }
+        
+        .product-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        
+        .product-price {
+            font-weight: 700;
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+        }
+        
+        .testimonials {
+            padding: 60px 0;
+        }
+        
+        .testimonial-card {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 30px;
+            height: 100%;
+            position: relative;
+        }
+        
+        .testimonial-text {
+            font-style: italic;
+            margin-bottom: 20px;
+            position: relative;
+            padding-left: 25px;
+        }
+        
+        .testimonial-text::before {
+            content: '"';
+            font-size: 4rem;
+            position: absolute;
+            left: -15px;
+            top: -20px;
+            color: rgba(52, 152, 219, 0.2);
+            font-family: Georgia, serif;
+        }
+        
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+        }
+        
+        .author-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-right: 15px;
+            background-color: #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-color);
+        }
+        
+        .author-name {
+            font-weight: 600;
+            margin-bottom: 0;
+            color: #2c3e50;
+        }
+        
+        .author-title {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+        }
+        
+        .cta-section {
+            background: linear-gradient(to right, #3498db, #2ecc71);
+            padding: 60px 0;
+            text-align: center;
+            color: white;
+            border-radius: var(--border-radius);
+            margin: 60px 0;
+            box-shadow: var(--box-shadow);
+        }
+        
+        .cta-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        
+        .cta-text {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        footer {
+            background-color: #2c3e50;
+            color: white;
+            padding: 60px 0 30px;
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
+        }
+        
+        .footer-title {
+            font-weight: 600;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+        }
+        
+        .footer-links {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .footer-links li {
+            margin-bottom: 10px;
+        }
+        
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .footer-links a:hover {
+            color: white;
+            text-decoration: none;
+        }
+        
+        .social-links {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .social-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            transition: all 0.3s ease;
+        }
+        
+        .social-icon:hover {
+            background-color: var(--primary-color);
+            transform: translateY(-3px);
+        }
+        
+        .copyright {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+        }
+
+        /* Chatbot styles */
+        .chat-box {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            width: 350px;
+            height: 450px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            display: none;
+            flex-direction: column;
+            z-index: 10000;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .chat-box-header {
+            padding: 15px;
+            background-color: #3498db;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-box-header h3 {
+            margin: 0;
+            font-size: 16px;
+        }
+
+        #close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .chat-box-body {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .chat-message {
+            max-width: 80%;
+            padding: 10px 15px;
+            border-radius: 18px;
+            margin-bottom: 5px;
+            word-wrap: break-word;
+        }
+
+        .user {
+            background-color: #e1f5fe;
+            align-self: flex-end;
+            border-bottom-right-radius: 5px;
+        }
+
+        .bot {
+            background-color: #f1f1f1;
+            align-self: flex-start;
+            border-bottom-left-radius: 5px;
+        }
+
+        .chat-box-footer {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        #user-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            outline: none;
+        }
+
+        #send-btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 10px 15px;
+            margin-left: 10px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        #send-btn:hover {
+            background-color: #2980b9;
+        }
+
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            padding: 6px 12px;
+        }
+
+        .typing-indicator span {
+            height: 8px;
+            width: 8px;
+            background-color: #95a5a6;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+            animation: typing 1.2s infinite ease-in-out;
+        }
+
+        .typing-indicator span:nth-child(1) {
+            animation-delay: 0s;
+        }
+
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+            margin-right: 0;
+        }
+
+        @keyframes typing {
+            0% {
+                transform: translateY(0px);
+                background-color: #95a5a6;
+            }
+            50% {
+                transform: translateY(-6px);
+                background-color: #3498db;
+            }
+            100% {
+                transform: translateY(0px);
+                background-color: #95a5a6;
+            }
+        }
+
+        .open-chatbot {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 12px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 9999;
+            transition: all 0.3s ease;
+            animation: pulse 2s infinite;
+        }
+
+        .open-chatbot:hover {
+            background-color: #2980b9;
+            transform: translateY(-3px);
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .chat-box {
+                width: 90%;
+                right: 5%;
+                left: 5%;
+            }
+        }
+
+        /* Suggested Products Styles */
+        .suggested-products {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+
+        .product-suggestion {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 8px;
+            width: 120px;
+            background-color: white;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            flex-shrink: 0;
+        }
+
+        .product-suggestion:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .product-suggestion img, .no-image {
+            width: 100%;
+            height: 80px;
+            object-fit: contain;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f9f9f9;
+            color: #aaa;
+            font-size: 12px;
+        }
+
+        .product-suggestion-info {
+            text-align: left;
+        }
+
+        .product-suggestion-name {
+            font-size: 12px;
+            font-weight: 500;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .product-suggestion-price {
+            font-size: 13px;
+            font-weight: 600;
+            color: #3498db;
+        }
+
+        /* Chat options styles */
+        .chat-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .chat-option-btn {
+            background-color: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            color: #3498db;
+            border-radius: 15px;
+            padding: 5px 10px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .chat-option-btn:hover {
+            background-color: rgba(52, 152, 219, 0.2);
+            border-color: #3498db;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-shopping-cart me-2"></i>E-Commerce
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/products">
+                            <i class="fas fa-box me-1"></i>Products
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/login">
+                            <i class="fas fa-sign-in-alt me-1"></i>Login
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/register">
+                            <i class="fas fa-user-plus me-1"></i>Register
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
+    <section class="hero-section">
+        <div class="container">
+            <h1 class="hero-title">Welcome to Our E-Commerce Platform</h1>
+            <p class="hero-subtitle">Discover amazing products, connect with sellers, and shop with confidence</p>
+            <div class="d-flex justify-content-center gap-3">
+                <a href="/products" class="btn btn-primary hero-btn">
+                    <i class="fas fa-shopping-bag me-2"></i>Browse Products
+                </a>
+                <a href="/register" class="btn btn-light hero-btn">
+                    <i class="fas fa-user-plus me-2"></i>Join Now
+                </a>
+            </div>
+        </div>
+    </section>
+    
+    <section class="features-section">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <h3 class="feature-title">Shop With Ease</h3>
+                        <p>Browse thousands of products from various categories and find exactly what you're looking for.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-store"></i>
+                        </div>
+                        <h3 class="feature-title">Sell Your Products</h3>
+                        <p>Create your own store, list your products, and reach customers from all around the world.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <h3 class="feature-title">Connect Directly</h3>
+                        <p>Chat with sellers, ask questions, and get personalized recommendations for your needs.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <section class="featured-products">
+        <div class="container">
+            <h2 class="section-title">Featured Products</h2>
+            <div class="row g-4">
+                {% for product in featured_products %}
+                <div class="col-md-3">
+                    <div class="product-card">
+                        {% if product.image %}
+                        <img src="{{ url_for('static', filename='uploads/' + product.image) }}" alt="{{ product.name }}" class="product-img">
+                        {% else %}
+                        <img src="https://via.placeholder.com/400/320" alt="Product" class="product-img">
+                        {% endif %}
+                        <div class="product-body">
+                            <h5 class="product-title">{{ product.name }}</h5>
+                            <p class="product-price">₹{{ "%.2f"|format(product.price|to_inr) }}</p>
+                            <div class="d-grid">
+                                <a href="{{ url_for('product_detail', product_id=product.id) }}" class="btn btn-outline-primary">View Details</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+    
+    <!-- View More Products Button -->
+    <div class="container text-center my-5">
+        <a href="{{ url_for('products') }}" class="btn btn-primary btn-lg">
+            <i class="fas fa-th-list me-2"></i>View More Products
+        </a>
+    </div>
+    
+    <section class="testimonials">
+        <div class="container">
+            <h2 class="section-title">What Our Users Say</h2>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="testimonial-card">
+                        <p class="testimonial-text">I love how easy it is to find and purchase quality products on this platform. The seller chat feature has been incredibly helpful!</p>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div>
+                                <p class="author-name">Sarah Johnson</p>
+                                <p class="author-title">Happy Customer</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="testimonial-card">
+                        <p class="testimonial-text">As a seller, this platform has helped me reach more customers than I ever thought possible. The interface is simple and powerful.</p>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div>
+                                <p class="author-name">David Miller</p>
+                                <p class="author-title">Store Owner</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="testimonial-card">
+                        <p class="testimonial-text">The direct messaging system makes communication between buyers and sellers seamless. Great shopping experience overall!</p>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div>
+                                <p class="author-name">Emily Chen</p>
+                                <p class="author-title">Regular User</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <section class="cta-section">
+        <div class="container">
+            <h2 class="cta-title">Ready to Get Started?</h2>
+            <p class="cta-text">Join thousands of satisfied users who shop, sell, and connect on our platform every day. Sign up is quick and easy!</p>
+            <div class="d-flex justify-content-center gap-3">
+                <a href="/register" class="btn btn-light hero-btn">
+                    <i class="fas fa-user-plus me-2"></i>Create Account
+                </a>
+                <a href="/login" class="btn btn-outline-light hero-btn">
+                    <i class="fas fa-sign-in-alt me-2"></i>Login
+                </a>
+            </div>
+        </div>
+    </section>
+    
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <h4 class="footer-title">E-Commerce</h4>
+                    <p>Your one-stop platform for all your shopping needs. Connect with sellers, discover amazing products, and shop with confidence.</p>
+                    <div class="social-links">
+                        <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                <div class="col-md-2 mb-4">
+                    <h5 class="footer-title">Shop</h5>
+                    <ul class="footer-links">
+                        <li><a href="#">All Products</a></li>
+                        <li><a href="#">Featured Items</a></li>
+                        <li><a href="#">New Arrivals</a></li>
+                        <li><a href="#">Best Sellers</a></li>
+                        <li><a href="#">Special Offers</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-2 mb-4">
+                    <h5 class="footer-title">Sell</h5>
+                    <ul class="footer-links">
+                        <li><a href="#">Start Selling</a></li>
+                        <li><a href="#">Seller Guidelines</a></li>
+                        <li><a href="#">Seller Dashboard</a></li>
+                        <li><a href="#">Success Stories</a></li>
+                        <li><a href="#">Seller FAQ</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-2 mb-4">
+                    <h5 class="footer-title">Company</h5>
+                    <ul class="footer-links">
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Contact</a></li>
+                        <li><a href="#">Careers</a></li>
+                        <li><a href="#">Press</a></li>
+                        <li><a href="#">Blog</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-2 mb-4">
+                    <h5 class="footer-title">Support</h5>
+                    <ul class="footer-links">
+                        <li><a href="#">Help Center</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="#">Returns & Refunds</a></li>
+                        <li><a href="#">FAQ</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>&copy; 2025 E-Commerce Platform. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Add Chatbot Interface -->
+    <div class="chat-box" id="chatbox">
+        <div class="chat-box-header">
+            <h3>Shopping Assistant</h3>
+            <button id="close-btn" onclick="toggleChat()">×</button>
+        </div>
+        <div class="chat-box-body" id="chat-messages">
+            <div class="chat-message bot">
+                <div class="message-content">Hello! Welcome to our E-Commerce store. How can I help you today?</div>
+                <div class="chat-options">
+                    <button class="chat-option-btn" onclick="selectOption('product_search')">Search Products</button>
+                    <button class="chat-option-btn" onclick="selectOption('payment')">Payment Options</button>
+                    <button class="chat-option-btn" onclick="selectOption('shipping')">Shipping Info</button>
+                    <button class="chat-option-btn" onclick="selectOption('returns')">Returns & Refunds</button>
+                    <button class="chat-option-btn" onclick="selectOption('account')">Account Help</button>
+                </div>
+            </div>
+            <!-- Typing indicator -->
+            <div class="typing-indicator" id="typing-indicator" style="display: none;">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+        <div class="chat-box-footer">
+            <input type="text" id="user-input" placeholder="Type your message...">
+            <button id="send-btn" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <button class="open-chatbot" id="chat-button" onclick="toggleChat()">
+        <i class="fas fa-comments"></i> Ask Shopping Assistant
+    </button>
+
+    <script>
+        // Chatbot functionality
+        let isChatOpen = false;
+        let currentCategory = ''; // Track the current category
+        
+        function toggleChat() {
+            const chatbox = document.getElementById('chatbox');
+            if (isChatOpen) {
+                chatbox.style.display = 'none';
+                isChatOpen = false;
+            } else {
+                chatbox.style.display = 'flex';
+                isChatOpen = true;
+                document.getElementById('user-input').focus();
+            }
+        }
+        
+        function sendMessage() {
+            const userInput = document.getElementById('user-input');
+            const message = userInput.value.trim();
+            
+            if (message) {
+                // Add user message to chat
+                addMessage(message, 'user');
+                
+                // Clear input
+                userInput.value = '';
+                
+                // Show typing indicator
+                showTypingIndicator();
+                
+                // Process message (simulate API call with timeout)
+                setTimeout(() => {
+                    processChatbotResponse(message);
+                }, 1000);
+            }
+        }
+        
+        function addMessage(message, sender, options = null) {
+            const chatMessages = document.getElementById('chat-messages');
+            const messageElement = document.createElement('div');
+            messageElement.className = `chat-message ${sender}`;
+            
+            let messageHTML = `<div class="message-content">${message}</div>`;
+            
+            if (options) {
+                messageHTML += `<div class="chat-options">`;
+                options.forEach(option => {
+                    messageHTML += `<button class="chat-option-btn" onclick="selectOption('${option.value}')">${option.text}</button>`;
+                });
+                messageHTML += `</div>`;
+            }
+            
+            messageElement.innerHTML = messageHTML;
+            
+            // Insert before typing indicator if it exists
+            const typingIndicator = document.getElementById('typing-indicator');
+            if (typingIndicator.style.display !== 'none') {
+                chatMessages.insertBefore(messageElement, typingIndicator);
+            } else {
+                chatMessages.appendChild(messageElement);
+            }
+            
+            // Scroll to bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        function showTypingIndicator() {
+            const typingIndicator = document.getElementById('typing-indicator');
+            typingIndicator.style.display = 'flex';
+            
+            // Scroll to see the typing indicator
+            const chatMessages = document.getElementById('chat-messages');
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        function hideTypingIndicator() {
+            const typingIndicator = document.getElementById('typing-indicator');
+            typingIndicator.style.display = 'none';
+        }
+        
+        function processChatbotResponse(userMessage) {
+            // Hide typing indicator first
+            hideTypingIndicator();
+            
+            // Build context with current category if set
+            const context = [];
+            if (currentCategory) {
+                context.push({
+                    type: 'category',
+                    value: currentCategory
+                });
+            }
+            
+            // Call the backend API
+            fetch('/chatbot_query', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    query: userMessage,
+                    context: context
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Process the response
+                let botMessage = data.answer;
+                
+                // Create element for the bot message
+                const chatMessages = document.getElementById('chat-messages');
+                const messageElement = document.createElement('div');
+                messageElement.className = 'chat-message bot';
+                
+                let messageHTML = `<div class="message-content">${botMessage}</div>`;
+                
+                // Add suggested products if any
+                if (data.suggested_products && data.suggested_products.length > 0) {
+                    messageHTML += `<div class="suggested-products">`;
+                    data.suggested_products.forEach(product => {
+                        const productPrice = parseFloat(product.price).toFixed(2);
+                        messageHTML += `
+                            <div class="product-suggestion" onclick="window.location.href='${product.url}'">
+                                ${product.image ? 
+                                  `<img src="/static/uploads/${product.image}" alt="${product.name}">` : 
+                                  `<div class="no-image">No Image</div>`
+                                }
+                                <div class="product-suggestion-info">
+                                    <div class="product-suggestion-name">${product.name}</div>
+                                    <div class="product-suggestion-price">₹${productPrice}</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    messageHTML += `</div>`;
+                    
+                    // Add follow-up options after showing products
+                    messageHTML += `<div class="chat-options" style="margin-top: 15px;">
+                        <button class="chat-option-btn" onclick="selectOption('refine_search')">Refine Search</button>
+                        <button class="chat-option-btn" onclick="selectOption('other_categories')">Other Categories</button>
+                        <button class="chat-option-btn" onclick="selectOption('price_filter')">Filter by Price</button>
+                    </div>`;
+                }
+                
+                messageElement.innerHTML = messageHTML;
+                chatMessages.appendChild(messageElement);
+                
+                // Scroll to bottom
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                addMessage("Sorry, I'm having trouble processing your request. Please try again later.", 'bot');
+            });
+        }
+        
+        // Handle option selection
+        function selectOption(option) {
+            switch(option) {
+                case 'product_search':
+                    addMessage("Search Products", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("What kind of products are you looking for? You can browse by category or search for specific items.", 'bot', [
+                            {text: "Phones", value: "phones"},
+                            {text: "Laptops", value: "laptops"},
+                            {text: "Headphones", value: "headphones"},
+                            {text: "Other Categories", value: "categories"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'categories':
+                    addMessage("Show me all categories", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("Here are all our product categories:", 'bot', [
+                            {text: "Phones", value: "phones"},
+                            {text: "Laptops", value: "laptops"},
+                            {text: "Tablets", value: "tablets"},
+                            {text: "Headphones", value: "headphones"},
+                            {text: "Watches", value: "watches"},
+                            {text: "Cameras", value: "cameras"},
+                            {text: "TVs", value: "tvs"},
+                            {text: "Gaming", value: "gaming"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'phones':
+                    addMessage("Show me phones", 'user');
+                    showTypingIndicator();
+                    currentCategory = 'Phone';
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("How would you like to see the phone results?", 'bot', [
+                            {text: "Just show all phones", value: "all_phones"},
+                            {text: "Sort by price (low to high)", value: "phones_price_low"},
+                            {text: "Sort by price (high to low)", value: "phones_price_high"},
+                            {text: "Show newest phones", value: "phones_newest"},
+                            {text: "Filter by price range", value: "phones_price_range"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'phones_price_range':
+                    addMessage("Filter by price range", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("What price range are you looking for?", 'bot', [
+                            {text: "Under ₹10,000", value: "phones_under_10k"},
+                            {text: "₹10,000 - ₹20,000", value: "phones_10k_20k"},
+                            {text: "₹20,000 - ₹50,000", value: "phones_20k_50k"},
+                            {text: "Above ₹50,000", value: "phones_above_50k"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'all_phones':
+                    addMessage("Just show all phones", 'user');
+                    showTypingIndicator();
+                    processChatbotResponse("Show me phones");
+                    break;
+                case 'phones_price_low':
+                    addMessage("Sort by price (low to high)", 'user');
+                    showTypingIndicator();
+                    processChatbotResponse("phones low to high");
+                    break;
+                case 'phones_price_high':
+                    addMessage("Sort by price (high to low)", 'user');
+                    showTypingIndicator();
+                    processChatbotResponse("phones high to low");
+                    break;
+                case 'phones_newest':
+                    addMessage("Show newest phones", 'user');
+                    showTypingIndicator();
+                    processChatbotResponse("newest phones");
+                    break;
+                case 'phones_under_10k':
+                    addMessage("Under ₹10,000", 'user');
+                    showTypingIndicator();
+                    processChatbotResponse("Show me phones under 10000");
+                    break;
+                case 'phones_10k_20k':
+                    addMessage("₹10,000 - ₹20,000", 'user');
+                    showTypingIndicator();
+                    processChatbotResponse("Show me phones between 10000 and 20000");
+                    break;
+                case 'phones_20k_50k':
+                    addMessage("₹20,000 - ₹50,000", 'user');
+                    showTypingIndicator();
+                    processChatbotResponse("Show me phones between 20000 and 50000");
+                    break;
+                case 'phones_above_50k':
+                    addMessage("Above ₹50,000", 'user');
+                    showTypingIndicator();
+                    processChatbotResponse("Show me phones above 50000");
+                    break;
+                case 'laptops':
+                    addMessage("Show me laptops", 'user');
+                    showTypingIndicator();
+                    currentCategory = 'Laptop';
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("How would you like to see the laptop results?", 'bot', [
+                            {text: "Just show all laptops", value: "all_laptops"},
+                            {text: "Sort by price (low to high)", value: "laptops_price_low"},
+                            {text: "Sort by price (high to low)", value: "laptops_price_high"},
+                            {text: "Show newest laptops", value: "laptops_newest"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'all_laptops':
+                    addMessage("Just show all laptops", 'user');
+                    showTypingIndicator();
+                    processChatbotResponse("Show me laptops");
+                    break;
+                case 'laptops_price_low':
+                    addMessage("Sort by price (low to high)", 'user');
+                    showTypingIndicator();
+                    processChatbotResponse("laptops low to high");
+                    break;
+                case 'laptops_price_high':
+                    addMessage("Sort by price (high to low)", 'user');
+                    showTypingIndicator();
+                    processChatbotResponse("laptops high to low");
+                    break;
+                case 'laptops_newest':
+                    addMessage("Show newest laptops", 'user');
+                    showTypingIndicator();
+                    processChatbotResponse("newest laptops");
+                    break;
+                case 'headphones':
+                    addMessage("Show me headphones", 'user');
+                    showTypingIndicator();
+                    currentCategory = 'Headphone';
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("How would you like to see the headphone results?", 'bot', [
+                            {text: "Just show all headphones", value: "all_headphones"},
+                            {text: "Sort by price (low to high)", value: "headphones_price_low"},
+                            {text: "Sort by price (high to low)", value: "headphones_price_high"},
+                            {text: "Show newest headphones", value: "headphones_newest"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'all_headphones':
+                    addMessage("Just show all headphones", 'user');
+                    showTypingIndicator();
+                    processChatbotResponse("Show me headphones");
+                    break;
+                case 'headphones_price_low':
+                    addMessage("Sort by price (low to high)", 'user');
+                    showTypingIndicator();
+                    processChatbotResponse("headphones low to high");
+                    break;
+                case 'headphones_price_high':
+                    addMessage("Sort by price (high to low)", 'user');
+                    showTypingIndicator();
+                    processChatbotResponse("headphones high to low");
+                    break;
+                case 'headphones_newest':
+                    addMessage("Show newest headphones", 'user');
+                    showTypingIndicator();
+                    processChatbotResponse("newest headphones");
+                    break;
+                case 'tablets':
+                    addMessage("Show me tablets", 'user');
+                    showTypingIndicator();
+                    currentCategory = 'Tablet';
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("How would you like to see the tablet results?", 'bot', [
+                            {text: "Just show all tablets", value: "all_tablets"},
+                            {text: "Sort by price (low to high)", value: "tablets_price_low"},
+                            {text: "Sort by price (high to low)", value: "tablets_price_high"},
+                            {text: "Show newest tablets", value: "tablets_newest"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'all_tablets':
+                    addMessage("Just show all tablets", 'user');
+                    showTypingIndicator();
+                    processChatbotResponse("Show me tablets");
+                    break;
+                case 'tablets_price_low':
+                    addMessage("Sort by price (low to high)", 'user');
+                    showTypingIndicator();
+                    processChatbotResponse("tablets low to high");
+                    break;
+                case 'tablets_price_high':
+                    addMessage("Sort by price (high to low)", 'user');
+                    showTypingIndicator();
+                    processChatbotResponse("tablets high to low");
+                    break;
+                case 'tablets_newest':
+                    addMessage("Show newest tablets", 'user');
+                    showTypingIndicator();
+                    processChatbotResponse("newest tablets");
+                    break;
+                case 'watches':
+                    addMessage("Show me watches", 'user');
+                    showTypingIndicator();
+                    currentCategory = 'Watch';
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("How would you like to see the watch results?", 'bot', [
+                            {text: "Just show all watches", value: "all_watches"},
+                            {text: "Sort by price (low to high)", value: "watches_price_low"},
+                            {text: "Sort by price (high to low)", value: "watches_price_high"},
+                            {text: "Show newest watches", value: "watches_newest"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'all_watches':
+                    addMessage("Just show all watches", 'user');
+                    showTypingIndicator();
+                    processChatbotResponse("Show me watches");
+                    break;
+                case 'watches_price_low':
+                    addMessage("Sort by price (low to high)", 'user');
+                    showTypingIndicator();
+                    processChatbotResponse("watches low to high");
+                    break;
+                case 'watches_price_high':
+                    addMessage("Sort by price (high to low)", 'user');
+                    showTypingIndicator();
+                    processChatbotResponse("watches high to low");
+                    break;
+                case 'watches_newest':
+                    addMessage("Show newest watches", 'user');
+                    showTypingIndicator();
+                    processChatbotResponse("newest watches");
+                    break;
+                case 'cameras':
+                    addMessage("Show me cameras", 'user');
+                    showTypingIndicator();
+                    currentCategory = 'Camera';
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("How would you like to see the camera results?", 'bot', [
+                            {text: "Just show all cameras", value: "all_cameras"},
+                            {text: "Sort by price (low to high)", value: "cameras_price_low"},
+                            {text: "Sort by price (high to low)", value: "cameras_price_high"},
+                            {text: "Show newest cameras", value: "cameras_newest"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'all_cameras':
+                    addMessage("Just show all cameras", 'user');
+                    showTypingIndicator();
+                    processChatbotResponse("Show me cameras");
+                    break;
+                case 'cameras_price_low':
+                    addMessage("Sort by price (low to high)", 'user');
+                    showTypingIndicator();
+                    processChatbotResponse("cameras low to high");
+                    break;
+                case 'cameras_price_high':
+                    addMessage("Sort by price (high to low)", 'user');
+                    showTypingIndicator();
+                    processChatbotResponse("cameras high to low");
+                    break;
+                case 'cameras_newest':
+                    addMessage("Show newest cameras", 'user');
+                    showTypingIndicator();
+                    processChatbotResponse("newest cameras");
+                    break;
+                case 'tvs':
+                    addMessage("Show me TVs", 'user');
+                    showTypingIndicator();
+                    currentCategory = 'TV';
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("How would you like to see the TV results?", 'bot', [
+                            {text: "Just show all TVs", value: "all_tvs"},
+                            {text: "Sort by price (low to high)", value: "tvs_price_low"},
+                            {text: "Sort by price (high to low)", value: "tvs_price_high"},
+                            {text: "Show newest TVs", value: "tvs_newest"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'all_tvs':
+                    addMessage("Just show all TVs", 'user');
+                    showTypingIndicator();
+                    processChatbotResponse("Show me TVs");
+                    break;
+                case 'tvs_price_low':
+                    addMessage("Sort by price (low to high)", 'user');
+                    showTypingIndicator();
+                    processChatbotResponse("tvs low to high");
+                    break;
+                case 'tvs_price_high':
+                    addMessage("Sort by price (high to low)", 'user');
+                    showTypingIndicator();
+                    processChatbotResponse("tvs high to low");
+                    break;
+                case 'tvs_newest':
+                    addMessage("Show newest TVs", 'user');
+                    showTypingIndicator();
+                    processChatbotResponse("newest tvs");
+                    break;
+                case 'gaming':
+                    addMessage("Show me gaming products", 'user');
+                    showTypingIndicator();
+                    currentCategory = 'Gaming';
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("How would you like to see the gaming product results?", 'bot', [
+                            {text: "Just show all gaming products", value: "all_gaming"},
+                            {text: "Sort by price (low to high)", value: "gaming_price_low"},
+                            {text: "Sort by price (high to low)", value: "gaming_price_high"},
+                            {text: "Show newest gaming products", value: "gaming_newest"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'all_gaming':
+                    addMessage("Just show all gaming products", 'user');
+                    showTypingIndicator();
+                    processChatbotResponse("Show me gaming products");
+                    break;
+                case 'gaming_price_low':
+                    addMessage("Sort by price (low to high)", 'user');
+                    showTypingIndicator();
+                    processChatbotResponse("gaming low to high");
+                    break;
+                case 'gaming_price_high':
+                    addMessage("Sort by price (high to low)", 'user');
+                    showTypingIndicator();
+                    processChatbotResponse("gaming high to low");
+                    break;
+                case 'gaming_newest':
+                    addMessage("Show newest gaming products", 'user');
+                    showTypingIndicator();
+                    processChatbotResponse("newest gaming");
+                    break;
+                case 'payment':
+                    addMessage("Payment Options", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("We accept the following payment methods:<br><br>• Credit/Debit Cards<br>• Net Banking<br>• UPI (Google Pay, PhonePe, etc.)<br>• Cash on Delivery (for eligible orders)<br>• EMI (on select banks)<br><br>Would you like to know more about any of these payment methods?", 'bot', [
+                            {text: "How do EMI payments work?", value: "emi_info"},
+                            {text: "Is COD available in my area?", value: "cod_availability"},
+                            {text: "Which banks offer no-cost EMI?", value: "no_cost_emi"},
+                            {text: "Do you accept international cards?", value: "international_cards"},
+                            {text: "Payment security", value: "payment_security"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'emi_info':
+                    addMessage("How do EMI payments work?", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("Our EMI payment options work as follows:<br><br>• Available on orders above ₹3,000<br>• Tenure options: 3, 6, 9, or 12 months<br>• Credit cards from HDFC, ICICI, SBI, Axis, Kotak, and American Express are supported<br>• Some banks offer no-cost EMI options<br>• Interest rates vary from 12-15% per annum depending on your bank<br>• Processing fee may apply based on bank policies<br><br>Would you like to know more about payment options?", 'bot', [
+                            {text: "No-cost EMI details", value: "no_cost_emi"},
+                            {text: "Check my EMI eligibility", value: "emi_eligibility"},
+                            {text: "Back to payment options", value: "payment"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'cod_availability':
+                    addMessage("Is COD available in my area?", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("Cash on Delivery is available in most areas with the following conditions:<br><br>• Available for orders under ₹50,000<br>• Not available for certain high-value electronics<br>• Pin code restrictions apply for remote locations<br><br>Would you like to check if your pin code is eligible for COD?", 'bot', [
+                            {text: "Check my pin code", value: "check_pincode"},
+                            {text: "COD restrictions", value: "cod_restrictions"},
+                            {text: "Back to payment options", value: "payment"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'check_pincode':
+                    addMessage("Check my pin code", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("Please enter your 6-digit pin code in the chat to check COD availability:", 'bot');
+                        // Add a listener for pin code input
+                        const chatbotInput = document.getElementById('user-input');
+                        chatbotInput.setAttribute('placeholder', 'Enter your 6-digit pin code...');
+                        chatbotInput.focus();
+                    }, 1000);
+                    break;
+                case 'no_cost_emi':
+                    addMessage("Which banks offer no-cost EMI?", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("We currently offer no-cost EMI with the following banks:<br><br>• HDFC Bank Credit Cards: 3 and 6 months<br>• ICICI Bank Credit Cards: 3, 6, and 9 months<br>• SBI Credit Cards: 3 and 6 months<br>• Axis Bank Credit Cards: 3 months<br>• Kotak Mahindra Bank Credit Cards: 3 months<br><br>No-cost EMI offers may vary based on ongoing promotions and product categories. Any other questions about payments?", 'bot', [
+                            {text: "EMI calculator", value: "emi_calculator"},
+                            {text: "EMI terms & conditions", value: "emi_terms"},
+                            {text: "Back to payment options", value: "payment"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'international_cards':
+                    addMessage("Do you accept international cards?", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("Yes, we accept international credit cards with the following details:<br><br>• Visa, Mastercard, and American Express are supported<br>• Currency conversion fees may apply (determined by your card issuer)<br>• 3D Secure authentication is required for all international transactions<br>• Some country restrictions may apply due to regulatory requirements<br><br>Do you have more questions about payments?", 'bot', [
+                            {text: "International payment issues", value: "intl_payment_issues"},
+                            {text: "Back to payment options", value: "payment"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'payment_security':
+                    addMessage("Payment security", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("Your payment security is our top priority:<br><br>• All transactions are protected with 128-bit SSL encryption<br>• We are PCI DSS compliant for secure credit card processing<br>• 3D Secure/Verified by Visa/Mastercard SecureCode authentication<br>• We never store your complete card details<br>• Suspicious transaction monitoring and fraud prevention systems in place<br><br>Any other concerns about payments?", 'bot', [
+                            {text: "Report payment issues", value: "payment_issues"},
+                            {text: "Back to payment options", value: "payment"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'emi_calculator':
+                    addMessage("EMI calculator", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("To calculate your EMI, please provide the following information:<br><br>1. Product price<br>2. Down payment (if any)<br>3. Loan tenure (3, 6, 9, or 12 months)<br>4. Bank name (for specific interest rates)<br><br>For example, a ₹50,000 purchase on 6-month EMI with HDFC would be approximately ₹8,333 per month for no-cost EMI.", 'bot', [
+                            {text: "Back to EMI options", value: "emi_info"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'cod_restrictions':
+                    addMessage("COD restrictions", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("Cash on Delivery has the following restrictions:<br><br>• Not available for products above ₹50,000<br>• Limited to certain pin codes only<br>• Not available for international shipping<br>• May require OTP verification at the time of delivery<br>• Not available for certain product categories like gold/jewelry<br><br>Any other questions about COD?", 'bot', [
+                            {text: "Back to COD info", value: "cod_availability"},
+                            {text: "Back to payment options", value: "payment"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'payment_issues':
+                    addMessage("Payment issues", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("For payment-related issues:<br><br>• Payment deducted but order not confirmed: Usually resolves within 24-48 hours automatically<br>• Failed payment: Try again with a different payment method<br>• Refund delays: Refunds typically take 5-7 business days to reflect in your account<br>• EMI concerns: Contact your bank for EMI-specific queries<br><br>If you're facing any other payment issues, please share details with our team.", 'bot', [
+                            {text: "Contact payment team", value: "contact_payment_team"},
+                            {text: "Check refund status", value: "refund_status"},
+                            {text: "Back to order issues", value: "order_issues"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'premium_coverage':
+                    addMessage("Premium coverage details", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("Our Premium Coverage Plan includes:<br><br>• Accidental damage protection<br>• Liquid damage coverage<br>• Free pick-up and drop facility<br>• Priority service at service centers<br>• One-time free screen replacement (for smartphones/tablets)<br>• Coverage for power surges and electrical failures<br><br>Premium plans start at ₹1299 and vary based on product value. Would you like to know about device-specific plans?", 'bot', [
+                            {text: "Smartphone plans", value: "phone_warranty_plans"},
+                            {text: "Laptop plans", value: "laptop_warranty_plans"},
+                            {text: "Back to extended warranty", value: "extended_warranty"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'product_info':
+                    addMessage("Product information", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("For information about our products:<br><br>• Detailed specifications and features<br>• Availability and stock status<br>• Compatibility with other devices<br>• Comparisons between similar products<br>• Usage instructions and best practices<br><br>Please specify the product you're interested in, or browse our categories to explore products.", 'bot', [
+                            {text: "Browse categories", value: "categories"},
+                            {text: "Compare products", value: "compare"},
+                            {text: "Back to customer support", value: "customer_support"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'feedback':
+                    addMessage("Feedback and complaints", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("We value your feedback to improve our services:<br><br>• Share your shopping experience<br>• Report issues with website/app functionality<br>• Provide suggestions for improvement<br>• Submit a formal complaint<br>• Appreciate our team members who helped you<br><br>How would you like to proceed?", 'bot', [
+                            {text: "Submit feedback", value: "submit_feedback"},
+                            {text: "File a complaint", value: "file_complaint"},
+                            {text: "Back to customer support", value: "customer_support"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'connect_tech_support':
+                    addMessage("Connect with tech support", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("To connect with our technical support team:<br><br>1. Call 1800-123-4567 and select option 2 for tech support<br>2. Request a callback through your account<br>3. Start a live chat through our website or app<br>4. Schedule a video call with our experts (for premium customers)<br><br>Our current wait time is approximately 5-10 minutes. Do you have your product details ready?", 'bot', [
+                            {text: "Start live chat", value: "live_chat"},
+                            {text: "Request callback", value: "callback_request"},
+                            {text: "Back to tech support", value: "tech_support"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'help_center':
+                    addMessage("Visit Help Center", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("Our Help Center contains comprehensive resources:<br><br>• Step-by-step setup guides<br>• Troubleshooting for common issues<br>• Video tutorials and demos<br>• FAQs organized by product category<br>• Software update guides<br><br>You can access our Help Center by clicking the link below or navigating to the Help section in your account.", 'bot', [
+                            {text: "Popular FAQs", value: "faqs"},
+                            {text: "Troubleshooting guides", value: "troubleshooting"},
+                            {text: "Back to tech support", value: "tech_support"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'main_menu':
+                    addMessage("Back to main menu", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("How else can I help you today?", 'bot', [
+                            {text: "Search Products", value: "product_search"},
+                            {text: "Payment Options", value: "payment"},
+                            {text: "Shipping Info", value: "shipping"},
+                            {text: "Returns & Refunds", value: "returns"},
+                            {text: "Account Help", value: "account"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'shipping':
+                    addMessage("Shipping Information", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("Our shipping policy:<br><br>• Standard Delivery: 3-5 business days<br>• Express Delivery: 1-2 business days<br>• Free shipping on orders above ₹1,000<br>• Additional charges for remote locations<br><br>You can track your order in real-time once it's dispatched.<br><br>Would you like to know more about shipping?", 'bot', [
+                            {text: "Check delivery timeframe", value: "delivery_timeframe"},
+                            {text: "International shipping", value: "intl_shipping"},
+                            {text: "Track my order", value: "order_tracking"},
+                            {text: "Shipping charges", value: "shipping_charges"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'delivery_timeframe':
+                    addMessage("Check delivery timeframe", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("Delivery timeframes vary by location and product:<br><br>• Metro cities: 2-3 business days<br>• Tier 2 cities: 3-5 business days<br>• Remote areas: 5-7 business days<br>• Large appliances: Additional 1-2 days<br><br>Note: These are estimates and may vary during sales or holiday periods. Would you like to check the estimated delivery time for your location?", 'bot', [
+                            {text: "Check my pin code", value: "delivery_pincode"},
+                            {text: "Express delivery options", value: "express_delivery"},
+                            {text: "Back to shipping info", value: "shipping"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'delivery_pincode':
+                    addMessage("Check my pin code", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("Please enter your 6-digit pin code to check estimated delivery time:", 'bot');
+                        // Add a listener for pin code input
+                        const chatbotInput = document.getElementById('user-input');
+                        chatbotInput.setAttribute('placeholder', 'Enter your 6-digit pin code...');
+                        chatbotInput.focus();
+                    }, 1000);
+                    break;
+                case 'intl_shipping':
+                    addMessage("International shipping", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("International shipping information:<br><br>• Available to 30+ countries worldwide<br>• Delivery time: 7-21 business days depending on destination<br>• Tracking provided for all international shipments<br>• Import duties and taxes may apply based on country regulations<br>• International returns have different policies<br><br>Would you like more details about international shipping?", 'bot', [
+                            {text: "Check country availability", value: "intl_countries"},
+                            {text: "International shipping rates", value: "intl_rates"},
+                            {text: "Back to shipping info", value: "shipping"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'order_tracking':
+                    addMessage("Track my order", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("To track your order, you will need:<br><br>• Your order number (found in your confirmation email)<br>• The email address used for the order<br><br>You can enter your order number below or check the 'My Orders' section in your account to track your package. Would you like to enter your order number?", 'bot', [
+                            {text: "Enter order number", value: "enter_order_number"},
+                            {text: "Go to my orders", value: "my_orders"},
+                            {text: "Back to shipping info", value: "shipping"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'enter_order_number':
+                    addMessage("Enter order number", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("Please enter your order number (format: ORD-XXXXXXXX):", 'bot');
+                        // Add a listener for order number input
+                        const chatbotInput = document.getElementById('user-input');
+                        chatbotInput.setAttribute('placeholder', 'Enter your order number...');
+                        chatbotInput.focus();
+                    }, 1000);
+                    break;
+                case 'shipping_charges':
+                    addMessage("Shipping charges", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("Our shipping charges are as follows:<br><br>• Orders below ₹500: ₹80 shipping fee<br>• Orders between ₹500-₹1,000: ₹50 shipping fee<br>• Orders above ₹1,000: FREE shipping<br>• Express delivery: Additional ₹100<br>• Remote locations: Additional ₹50-₹150 based on distance<br><br>Any other questions about shipping?", 'bot', [
+                            {text: "Free shipping eligibility", value: "free_shipping"},
+                            {text: "Back to shipping info", value: "shipping"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'express_delivery':
+                    addMessage("Express delivery options", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("Express Delivery options:<br><br>• Same-day delivery: Available in select metro cities for orders placed before 12 PM<br>• Next-day delivery: Available for most major cities<br>• 2-day guaranteed delivery: Available nationwide except remote locations<br><br>Express delivery incurs an additional charge of ₹100-₹200 depending on location and urgency. Would you like to check if your location is eligible for same-day delivery?", 'bot', [
+                            {text: "Check same-day eligibility", value: "sameday_check"},
+                            {text: "Back to shipping info", value: "shipping"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'returns':
+                    addMessage("Returns & Refunds", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("Our returns policy:<br><br>• Most products: 7-day return window<br>• Clothing & Accessories: 14-day return window<br>• Products must be in original packaging with tags<br>• Refunds processed within 5-7 business days<br>• Free return shipping for eligible items<br><br>What would you like to know more about?", 'bot', [
+                            {text: "How to initiate a return", value: "initiate_return"},
+                            {text: "Refund process", value: "refund_process"},
+                            {text: "Return policy exceptions", value: "return_exceptions"},
+                            {text: "Damaged item returns", value: "damaged_returns"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'initiate_return':
+                    addMessage("How to initiate a return", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("To initiate a return, follow these steps:<br><br>1. Go to 'My Orders' in your account<br>2. Select the order containing the item to return<br>3. Click on 'Return Item' next to the product<br>4. Select a reason for the return<br>5. Choose your preferred refund method<br>6. Print the return shipping label (if provided)<br>7. Pack the item in its original packaging<br>8. Drop off at the nearest courier partner location or schedule a pickup<br><br>Would you like help with something specific?", 'bot', [
+                            {text: "Return pickup options", value: "return_pickup"},
+                            {text: "Return without invoice", value: "return_no_invoice"},
+                            {text: "Back to returns & refunds", value: "returns"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'refund_process':
+                    addMessage("Refund process", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("Our refund process works as follows:<br><br>1. Once we receive your returned item, we'll inspect it within 24-48 hours<br>2. If approved, the refund will be processed to your original payment method<br>3. Credit/debit card refunds take 5-7 business days to reflect in your account<br>4. UPI refunds take 1-3 business days<br>5. Bank transfers take 3-5 business days<br>6. You'll receive email notifications at each step of the process<br><br>What else would you like to know about refunds?", 'bot', [
+                            {text: "Refund to store credit", value: "store_credit"},
+                            {text: "Partial refunds", value: "partial_refund"},
+                            {text: "Back to returns & refunds", value: "returns"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'return_exceptions':
+                    addMessage("Return policy exceptions", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("Some products have special return policies or are non-returnable:<br><br>• Customized or personalized items cannot be returned<br>• Undergarments, earphones, and personal care items for hygiene reasons<br>• Software, digital content, and gift cards<br>• Perishable goods<br>• Items marked as non-returnable on the product page<br>• Items with removed tags or damaged packaging<br><br>Need more information on returns?", 'bot', [
+                            {text: "Return policy for sales items", value: "sale_returns"},
+                            {text: "Back to returns & refunds", value: "returns"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'damaged_returns':
+                    addMessage("Damaged item returns", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("If you received a damaged or defective item:<br><br>1. Report the issue within 48 hours of delivery<br>2. Take clear photos of the damage<br>3. Contact customer support with your order number and photos<br>4. We'll arrange a free pickup and replacement/refund<br>5. No questions asked returns for damaged items<br><br>For manufacturer defects beyond the return window, manufacturer warranty may apply. Would you like to report a damaged item?", 'bot', [
+                            {text: "Report damaged item", value: "report_damage"},
+                            {text: "Warranty information", value: "warranty_info"},
+                            {text: "Back to returns & refunds", value: "returns"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'account':
+                    addMessage("Account Help", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("We're here to help with all your account-related questions. How can we assist you today?", 'bot', [
+                            {text: "Login Issues", value: "login_issues"},
+                            {text: "Registration Help", value: "registration_help"},
+                            {text: "Update Account Details", value: "update_account"},
+                            {text: "Password Reset", value: "password_reset"},
+                            {text: "My Orders", value: "view_orders"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'login_issues':
+                    addMessage("Login Issues", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("If you're having trouble logging in:<br><br>• Make sure you're using the correct email and password<br>• Check if Caps Lock is turned on<br>• Clear your browser cache and cookies<br>• Try using a different browser<br>• If you've forgotten your password, use the password reset option<br><br>Would you like to reset your password?", 'bot', [
+                            {text: "Reset Password", value: "password_reset"},
+                            {text: "Contact Support", value: "contact_support"},
+                            {text: "Back to Account Help", value: "account"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'registration_help':
+                    addMessage("Registration Help", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("To create a new account:<br><br>1. Click on 'Register' in the top navigation bar<br>2. Fill in your details (username, email, password)<br>3. Select your account type (User or Seller)<br>4. Submit the form<br><br>If you're encountering any issues during registration, it might be because:<br>• The email is already registered<br>• Your password doesn't meet the requirements<br>• There might be a temporary technical issue<br><br>Need more help?", 'bot', [
+                            {text: "Go to Registration", value: "go_register"},
+                            {text: "Back to Account Help", value: "account"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'go_register':
+                    addMessage("Go to Registration", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("You can register a new account by clicking the link below or using the 'Register' button in the navigation bar at the top of the page.<br><br><a href='/register' class='btn btn-primary btn-sm mt-2'>Go to Registration Page</a>", 'bot', [
+                            {text: "Back to Account Help", value: "account"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'update_account':
+                    addMessage("Update Account Details", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("To update your account details:<br><br>1. Log in to your account<br>2. Go to the Dashboard page<br>3. Visit your profile settings<br><br>If you're already logged in, you can access your dashboard directly using the button below.<br><br><a href='/dashboard' class='btn btn-primary btn-sm mt-2'>Go to Dashboard</a>", 'bot', [
+                            {text: "Login First", value: "go_login"},
+                            {text: "Back to Account Help", value: "account"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'go_login':
+                    addMessage("Login First", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("You can log in to your account by clicking the link below or using the 'Login' button in the navigation bar at the top of the page.<br><br><a href='/login' class='btn btn-primary btn-sm mt-2'>Go to Login Page</a>", 'bot', [
+                            {text: "Back to Account Help", value: "account"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'password_reset':
+                    addMessage("Password Reset", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("To reset your password:<br><br>1. Go to the Login page<br>2. Click on 'Forgot Password?'<br>3. Enter your registered email address<br>4. Check your email for a password reset link<br>5. Create a new password<br><br>Please note that the reset link is valid for 24 hours only.<br><br><a href='/login' class='btn btn-primary btn-sm mt-2'>Go to Login Page</a>", 'bot', [
+                            {text: "Back to Account Help", value: "account"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'view_orders':
+                    addMessage("My Orders", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("To view your order history:<br><br>1. Log in to your account<br>2. Go to Dashboard<br>3. Click on 'Order History'<br><br>If you're already logged in, you can access your orders directly using the button below.<br><br><a href='/order_history' class='btn btn-primary btn-sm mt-2'>View Order History</a>", 'bot', [
+                            {text: "Login First", value: "go_login"},
+                            {text: "Back to Account Help", value: "account"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'contact_support':
+                    addMessage("Contact Support", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("Our customer support team is available to help you with any account-related issues:<br><br>• Email: support@ecommerce.com<br>• Phone: 1-800-123-4567 (9 AM - 6 PM, Monday to Saturday)<br>• Live Chat: Available on our website during business hours<br><br>Please have your account details ready when contacting support for faster assistance.", 'bot', [
+                            {text: "Back to Account Help", value: "account"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'refine_search':
+                    addMessage("Refine my search", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("How would you like to refine your search?", 'bot', [
+                            {text: "Sort by Price (Low to High)", value: "sort_price_low"},
+                            {text: "Sort by Price (High to Low)", value: "sort_price_high"},
+                            {text: "Show Newest Products", value: "sort_newest"},
+                            {text: "Filter by Price Range", value: "price_filter"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'sort_price_low':
+                    addMessage("Sort by Price (Low to High)", 'user');
+                    showTypingIndicator();
+                    processChatbotResponse("price low to high");
+                    break;
+                case 'sort_price_high':
+                    addMessage("Sort by Price (High to Low)", 'user');
+                    showTypingIndicator();
+                    processChatbotResponse("price high to low");
+                    break;
+                case 'sort_newest':
+                    addMessage("Show Newest Products", 'user');
+                    showTypingIndicator();
+                    processChatbotResponse("show newest products");
+                    break;
+                case 'price_filter':
+                    addMessage("Filter by Price Range", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("Please select a price range:", 'bot', [
+                            {text: "Under ₹10,000", value: "under_10k"},
+                            {text: "₹10,000 - ₹20,000", value: "between_10k_20k"},
+                            {text: "₹20,000 - ₹50,000", value: "between_20k_50k"},
+                            {text: "Above ₹50,000", value: "above_50k"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'under_10k':
+                    addMessage("Under ₹10,000", 'user');
+                    showTypingIndicator();
+                    processChatbotResponse("Show products under 10000");
+                    break;
+                case 'between_10k_20k':
+                    addMessage("₹10,000 - ₹20,000", 'user');
+                    showTypingIndicator();
+                    processChatbotResponse("Show products between 10000 and 20000");
+                    break;
+                case 'between_20k_50k':
+                    addMessage("₹20,000 - ₹50,000", 'user');
+                    showTypingIndicator();
+                    processChatbotResponse("Show products between 20000 and 50000");
+                    break;
+                case 'above_50k':
+                    addMessage("Above ₹50,000", 'user');
+                    showTypingIndicator();
+                    processChatbotResponse("Show products above 50000");
+                    break;
+                case 'other_categories':
+                    addMessage("Show other categories", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("Here are all our product categories:", 'bot', [
+                            {text: "Phones", value: "phones"},
+                            {text: "Laptops", value: "laptops"},
+                            {text: "Tablets", value: "tablets"},
+                            {text: "Headphones", value: "headphones"},
+                            {text: "Watches", value: "watches"},
+                            {text: "Cameras", value: "cameras"},
+                            {text: "TVs", value: "tvs"},
+                            {text: "Gaming", value: "gaming"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'warranty_info':
+                    addMessage("Warranty information", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("Warranty information:<br><br>• Most electronics come with 1-2 year manufacturer warranty<br>• Appliances typically have 1-5 year warranty depending on the product<br>• Warranty is handled directly by the manufacturer for most products<br>• Proof of purchase is required for warranty claims<br>• Warranty does not cover physical damage or liquid damage<br><br>Would you like to know more about warranties?", 'bot', [
+                            {text: "Extended warranty options", value: "extended_warranty"},
+                            {text: "How to claim warranty", value: "claim_warranty"},
+                            {text: "Back to returns & refunds", value: "returns"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'extended_warranty':
+                    addMessage("Extended warranty options", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("We offer extended warranty plans for most electronics and appliances:<br><br>• 1-year extension: Starting from ₹499<br>• 2-year extension: Starting from ₹899<br>• Premium coverage: Includes accidental damage protection<br>• Device-specific plans for smartphones, laptops, and TVs<br><br>Extended warranty can be purchased within 30 days of buying the product. Would you like to know more?", 'bot', [
+                            {text: "Premium coverage details", value: "premium_coverage"},
+                            {text: "Back to warranty info", value: "warranty_info"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'claim_warranty':
+                    addMessage("How to claim warranty", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("To claim warranty for a product:<br><br>1. Keep your invoice/order confirmation handy<br>2. Contact the brand's service center directly (contact details available on product page)<br>3. Alternatively, raise a warranty request in your account<br>4. Provide product serial number and purchase details<br>5. Follow instructions for sending the product for repair/replacement<br><br>For any assistance with warranty claims, our customer support team is available to help.", 'bot', [
+                            {text: "Contact customer support", value: "customer_support"},
+                            {text: "Back to warranty info", value: "warranty_info"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'customer_support':
+                    addMessage("Contact customer support", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("Our customer support team is available to assist you:<br><br>• Phone: 1800-123-4567 (9 AM to 9 PM, all days)<br>• Email: support@techstore.com<br>• Live Chat: Available on our website and app<br>• Social Media: @TechStoreSupport on Twitter<br><br>What would you like help with?", 'bot', [
+                            {text: "Technical support", value: "tech_support"},
+                            {text: "Order issues", value: "order_issues"},
+                            {text: "Product information", value: "product_info"},
+                            {text: "Feedback and complaints", value: "feedback"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'tech_support':
+                    addMessage("Technical support", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("For technical support with your products:<br><br>• Our tech experts are available from 8 AM to 10 PM daily<br>• Please keep your product model number and purchase details ready<br>• Remote diagnostics available for select products<br>• Step-by-step troubleshooting guides are available in our Help Center<br><br>Would you like to connect with a tech support agent?", 'bot', [
+                            {text: "Connect with tech support", value: "connect_tech_support"},
+                            {text: "Visit Help Center", value: "help_center"},
+                            {text: "Back to customer support", value: "customer_support"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'order_issues':
+                    addMessage("Order issues", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("For any issues with your order:<br><br>• Wrong item received<br>• Damaged packaging<br>• Missing items in order<br>• Delivery delays<br>• Payment-related concerns<br><br>Please provide your order number, and our team will assist you promptly. Most order issues are resolved within 24-48 hours.", 'bot', [
+                            {text: "Report missing/wrong item", value: "missing_item"},
+                            {text: "Payment issues", value: "payment_issues"},
+                            {text: "Back to customer support", value: "customer_support"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'missing_item':
+                    addMessage("Report missing/wrong item", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("To report a missing or wrong item in your order:<br><br>1. Go to 'My Orders' in your account<br>2. Select the affected order<br>3. Click on 'Report Issue'<br>4. Select 'Missing Item' or 'Wrong Item'<br>5. Provide details and photos if available<br>6. Submit your report<br><br>Our team will review your case and respond within 24 hours. Would you like to proceed with reporting an issue?", 'bot', [
+                            {text: "Go to My Orders", value: "my_orders"},
+                            {text: "Back to order issues", value: "order_issues"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'returns_process':
+                    addMessage("Returns process information", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("Our Returns Process:<br><br>• Initiate returns within 7 days of delivery for most products<br>• Electronics have a 10-day return window<br>• Items must be in original packaging with all accessories<br>• Choose between refund or replacement<br>• Free pickup service for returns due to defects<br>• Refunds processed within 7-10 business days after inspection<br><br>Would you like to initiate a return or learn more?", 'bot', [
+                            {text: "Initiate a return", value: "start_return"},
+                            {text: "Return eligibility", value: "return_eligibility"},
+                            {text: "Back to order issues", value: "order_issues"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'shipping_policy':
+                    addMessage("Shipping policy details", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("Our Shipping Policy:<br><br>• Free standard shipping on orders above ₹500<br>• Express delivery (1-2 days) available at additional cost<br>• Same-day delivery in select metro cities for orders placed before 2 PM<br>• International shipping available to 30+ countries<br>• Remote locations may require 1-2 additional days<br>• Shipping charges are calculated based on weight, dimensions and delivery location<br><br>Would you like to know about specific shipping timeframes?", 'bot', [
+                            {text: "Delivery timeframes", value: "delivery_times"},
+                            {text: "Shipping charges", value: "shipping_charges"},
+                            {text: "Back to customer support", value: "customer_support"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'track_order':
+                    addMessage("Track my order", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("To track your order:<br><br>1. Go to 'My Orders' in your account<br>2. Select the order you want to track<br>3. Click on 'Track Package'<br>4. View real-time updates on your order status<br><br>You can also track using the order number and your registered email/phone. Would you like to enter your order details now?", 'bot', [
+                            {text: "Enter order number", value: "enter_order_number"},
+                            {text: "Recent orders", value: "view_recent_orders"},
+                            {text: "Back to order issues", value: "order_issues"}
+                        ]);
+                    }, 1000);
+                    break;
+                case 'exchange_process':
+                    addMessage("Product exchange process", 'user');
+                    showTypingIndicator();
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        addMessage("Our Exchange Process:<br><br>• Eligible products can be exchanged within 7 days of delivery<br>• The replacement product must be of equal or higher value<br>• For higher value items, you pay only the difference<br>• Original packaging and accessories must be intact<br>• Free pickup and delivery for exchanges<br>• Exchange confirmation is subject to inspection of returned item<br><br>Would you like to initiate an exchange?", 'bot', [
+                            {text: "Start exchange", value: "initiate_exchange"},
+                            {text: "Exchange eligibility", value: "check_exchange_eligibility"},
+                            {text: "Back to returns process", value: "returns_process"}
+                        ]);
+                    }, 1000);
+                    break;
+                // Add more options as needed
+                default:
+                    addMessage(`You selected: ${option}`, 'user');
+                    showTypingIndicator();
+                    processChatbotResponse(`Show me ${option}`);
+            }
+        }
+        
+        // Listen for Enter key in the input field
+        document.getElementById('user-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>

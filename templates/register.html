@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - E-Commerce</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --bg-color: #f8f9fa;
+            --text-color: #333;
+            --border-radius: 8px;
+            --box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            padding-bottom: 2rem;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-image: linear-gradient(to right bottom, rgba(44, 62, 80, 0.7), rgba(52, 152, 219, 0.7)), url('/api/placeholder/1920/1080');
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .navbar {
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            background: linear-gradient(to right, #2c3e50, #3498db) !important;
+            padding: 12px 0;
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            letter-spacing: 0.5px;
+        }
+        
+        .nav-link {
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin: 0 5px;
+            padding: 8px 15px !important;
+            border-radius: var(--border-radius);
+        }
+        
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .register-container {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+            margin-top: 40px;
+            margin-bottom: 40px;
+        }
+        
+        .register-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(to right, #3498db, #2ecc71);
+        }
+        
+        .logo-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .logo-icon {
+            font-size: 2.5rem;
+            background: linear-gradient(to right, #3498db, #2ecc71);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        
+        .logo-text {
+            font-weight: 700;
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+            color: #2c3e50;
+        }
+        
+        .register-title {
+            font-weight: 700;
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.5rem;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+        
+        .form-control {
+            padding: 12px 15px;
+            border-radius: var(--border-radius);
+            border: 1px solid #ddd;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group-text {
+            background-color: #f8f9fa;
+            border-color: #ddd;
+            color: #7f8c8d;
+        }
+        
+        .btn-register {
+            background: linear-gradient(to right, #3498db, #2ecc71);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 12px 0;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-register:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            background: linear-gradient(to right, #2980b9, #27ae60);
+        }
+        
+        .form-text {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        
+        .login-link {
+            text-align: center;
+            margin-top: 25px;
+            color: #7f8c8d;
+        }
+        
+        .login-link a {
+            color: var(--primary-color);
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .login-link a:hover {
+            color: #2980b9;
+            text-decoration: underline;
+        }
+        
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 25px 0;
+            color: #7f8c8d;
+        }
+        
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .divider span {
+            padding: 0 10px;
+        }
+        
+        .social-login {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .social-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
+        
+        .social-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .facebook {
+            background-color: #3b5998;
+        }
+        
+        .google {
+            background-color: #db4437;
+        }
+        
+        .twitter {
+            background-color: #1da1f2;
+        }
+        
+        .password-toggle {
+            cursor: pointer;
+            color: #7f8c8d;
+            transition: all 0.3s ease;
+        }
+        
+        .password-toggle:hover {
+            color: var(--primary-color);
+        }
+        
+        .terms-text {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .terms-text a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .terms-text a:hover {
+            text-decoration: underline;
+        }
+        
+        .role-selector {
+            margin-bottom: 20px;
+        }
+        
+        .role-option {
+            display: flex;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            padding: 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .role-option:hover {
+            border-color: var(--primary-color);
+            background-color: rgba(52, 152, 219, 0.05);
+        }
+        
+        .role-option.active {
+            border-color: var(--primary-color);
+            background-color: rgba(52, 152, 219, 0.1);
+        }
+        
+        .role-icon {
+            margin-right: 15px;
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+        
+        .role-details h6 {
+            margin-bottom: 3px;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+        
+        .role-details p {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-shopping-cart me-2"></i>E-Commerce
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">
+                            <i class="fas fa-home me-1"></i>Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/products">
+                            <i class="fas fa-box me-1"></i>Products
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/login">
+                            <i class="fas fa-sign-in-alt me-1"></i>Login
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/register">
+                            <i class="fas fa-user-plus me-1"></i>Register
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-7 col-lg-6 col-xl-5">
+                <div class="register-container">
+                    <div class="logo-section">
+                        <div class="logo-icon">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <h2 class="logo-text">E-Commerce</h2>
+                        <p>Create an account to get started</p>
+                    </div>
+                    
+                    <h4 class="register-title">Create Your Account</h4>
+                    
+                    {% if error %}
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="fas fa-exclamation-circle me-2"></i>{{ error }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    {% endif %}
+                    
+                    <form method="POST">
+                        <div class="input-group mb-3">
+                            <span class="input-group-text">
+                                <i class="fas fa-user"></i>
+                            </span>
+                            <input name="username" class="form-control" placeholder="Username" required>
+                        </div>
+                        
+                        <div class="input-group mb-3">
+                            <span class="input-group-text">
+                                <i class="fas fa-envelope"></i>
+                            </span>
+                            <input type="email" name="email" class="form-control" placeholder="Email Address" required>
+                        </div>
+                        
+                        <div class="input-group mb-3">
+                            <span class="input-group-text">
+                                <i class="fas fa-lock"></i>
+                            </span>
+                            <input type="password" name="password" id="passwordField" class="form-control" placeholder="Password" required>
+                            <span class="input-group-text password-toggle" onclick="togglePassword()">
+                                <i class="fas fa-eye" id="toggleIcon"></i>
+                            </span>
+                        </div>
+                        <div class="form-text mb-3">Password must be at least 8 characters long with numbers and letters.</div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">Select Your Role</label>
+                            <div class="role-selector">
+                                <div class="role-option active" onclick="selectRole('user', this)">
+                                    <div class="role-icon">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <div class="role-details">
+                                        <h6>Customer</h6>
+                                        <p>Shop and purchase products from our marketplace</p>
+                                    </div>
+                                </div>
+                                <div class="role-option" onclick="selectRole('seller', this)">
+                                    <div class="role-icon">
+                                        <i class="fas fa-store"></i>
+                                    </div>
+                                    <div class="role-details">
+                                        <h6>Seller</h6>
+                                        <p>List and sell your products on our platform</p>
+                                    </div>
+                                </div>
+                                <div class="role-option" onclick="selectRole('admin', this)">
+                                    <div class="role-icon">
+                                        <i class="fas fa-shield-alt"></i>
+                                    </div>
+                                    <div class="role-details">
+                                        <h6>Admin</h6>
+                                        <p>Manage the marketplace and users</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <input type="hidden" name="role" id="selectedRole" value="user">
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="termsCheck" required>
+                            <label class="form-check-label" for="termsCheck">
+                                I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
+                            </label>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-register">
+                            Create Account <i class="fas fa-arrow-right ms-2"></i>
+                        </button>
+                    </form>
+                    
+                    <div class="divider">
+                        <span>or sign up with</span>
+                    </div>
+                    
+                    <div class="social-login">
+                        <a href="#" class="social-btn facebook">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="social-btn google">
+                            <i class="fab fa-google"></i>
+                        </a>
+                        <a href="#" class="social-btn twitter">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                    </div>
+                    
+                    <div class="login-link">
+                        Already have an account? <a href="/login">Log In</a>
+                    </div>
+                    
+                    <div class="terms-text">
+                        By registering, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function togglePassword() {
+            const passwordField = document.getElementById('passwordField');
+            const toggleIcon = document.getElementById('toggleIcon');
+            
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordField.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+        }
+        
+        function selectRole(role, element) {
+            // Remove active class from all options
+            document.querySelectorAll('.role-option').forEach(option => {
+                option.classList.remove('active');
+            });
+            
+            // Add active class to selected option
+            element.classList.add('active');
+            
+            // Update hidden input value
+            document.getElementById('selectedRole').value = role;
+        }
+    </script>
+</body>
+</html>

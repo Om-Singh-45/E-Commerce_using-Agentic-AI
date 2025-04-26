@@ -1,0 +1,1398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ product.name }} - E-Commerce</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --bg-color: #f8f9fa;
+            --text-color: #333;
+            --border-radius: 8px;
+            --box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            padding-bottom: 2rem;
+        }
+        
+        .navbar {
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            background: linear-gradient(to right, #2c3e50, #3498db) !important;
+            padding: 12px 0;
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            letter-spacing: 0.5px;
+        }
+        
+        .nav-link {
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin: 0 5px;
+            padding: 8px 15px !important;
+            border-radius: var(--border-radius);
+        }
+        
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .product-container {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 30px;
+            margin-top: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .product-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(to right, #3498db, #2ecc71);
+        }
+        
+        .product-gallery {
+            position: relative;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--box-shadow);
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #fff;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+        }
+        
+        .product-image {
+            max-width: 100%;
+            max-height: 450px;
+            object-fit: contain;
+            transition: all 0.5s ease;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        }
+        
+        .product-image:hover {
+            transform: scale(1.02);
+        }
+        
+        .product-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        
+        .product-description {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+            line-height: 1.7;
+            margin-bottom: 20px;
+        }
+        
+        .product-price {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .product-original-price {
+            font-size: 1.2rem;
+            text-decoration: line-through;
+            color: #95a5a6;
+            margin-left: 10px;
+        }
+        
+        .product-discount {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-left: 10px;
+        }
+        
+        .product-available {
+            color: var(--secondary-color);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .product-unavailable {
+            color: #e74c3c;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .product-rating {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .stars {
+            color: #f39c12;
+            font-size: 1.2rem;
+            margin-right: 10px;
+        }
+        
+        .review-count {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        
+        .product-quantity {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .quantity-label {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .quantity-input {
+            width: 120px;
+            border-radius: var(--border-radius);
+            padding: 12px;
+            border: 1px solid #ddd;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .quantity-input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        }
+        
+        .btn-cart {
+            background: linear-gradient(to right, #3498db, #2ecc71);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 12px 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-cart:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            background: linear-gradient(to right, #2980b9, #27ae60);
+            color: white;
+        }
+        
+        .btn-wishlist {
+            background-color: white;
+            color: #e74c3c;
+            border: 1px solid #e74c3c;
+            border-radius: 50px;
+            padding: 12px 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .btn-wishlist:hover {
+            background-color: #e74c3c;
+            color: white;
+            transform: translateY(-3px);
+        }
+        
+        .product-details {
+            border-top: 1px solid #ecf0f1;
+            margin-top: 30px;
+            padding-top: 30px;
+        }
+        
+        .details-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+        
+        .detail-item {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        
+        .detail-label {
+            font-weight: 600;
+            width: 150px;
+            color: #34495e;
+        }
+        
+        .detail-value {
+            color: #7f8c8d;
+        }
+        
+        .seller-info {
+            display: flex;
+            align-items: center;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: rgba(52, 152, 219, 0.05);
+            border-radius: var(--border-radius);
+        }
+        
+        .seller-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-right: 15px;
+            background-color: #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-color);
+        }
+        
+        .seller-name {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .seller-rating {
+            font-size: 0.9rem;
+            color: #f39c12;
+        }
+        
+        .similar-products {
+            margin-top: 60px;
+            padding-top: 40px;
+            border-top: 1px solid #ecf0f1;
+        }
+        
+        .section-title {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #2c3e50;
+            font-weight: 700;
+            position: relative;
+            padding-bottom: 15px;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(to right, #3498db, #2ecc71);
+            border-radius: 2px;
+        }
+        
+        .product-card {
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .product-img {
+            height: 200px;
+            width: 100%;
+            object-fit: cover;
+        }
+        
+        .product-body {
+            padding: 20px;
+        }
+        
+        .card-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        
+        .card-price {
+            font-weight: 700;
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+        }
+        
+        /* Flash messages */
+        .alert {
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+        }
+        
+        .alert-success {
+            background-color: rgba(46, 204, 113, 0.1);
+            border-color: var(--secondary-color);
+            color: var(--secondary-color);
+        }
+        
+        .alert-error {
+            background-color: rgba(231, 76, 60, 0.1);
+            border-color: #e74c3c;
+            color: #e74c3c;
+        }
+        
+        /* Chatbot styles */
+        .chatbot-container {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            width: 350px;
+            height: 500px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            z-index: 10000;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            transform: translateY(600px);
+        }
+        
+        .chatbot-container.active {
+            transform: translateY(0);
+        }
+        
+        .chatbot-header {
+            padding: 15px;
+            background-color: #3498db;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .chatbot-header h3 {
+            margin: 0;
+            font-size: 16px;
+        }
+        
+        .close-chatbot {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        
+        .chatbot-messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .chatbot-message {
+            max-width: 80%;
+            padding: 10px 15px;
+            border-radius: 18px;
+            margin-bottom: 5px;
+            word-wrap: break-word;
+        }
+        
+        .user-message {
+            background-color: #e1f5fe;
+            align-self: flex-end;
+            border-bottom-right-radius: 5px;
+        }
+        
+        .bot-message {
+            background-color: #f1f1f1;
+            align-self: flex-start;
+            border-bottom-left-radius: 5px;
+        }
+        
+        .suggested-products {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 8px;
+            justify-content: center;
+        }
+        
+        .product-suggestion {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 8px;
+            width: 120px;
+            background-color: white;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .product-suggestion:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .product-suggestion img {
+            width: 100%;
+            height: 80px;
+            object-fit: contain;
+            margin-bottom: 5px;
+        }
+        
+        .product-suggestion .product-name {
+            font-size: 12px;
+            font-weight: 500;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .product-suggestion .product-price {
+            font-weight: bold;
+            color: #d32f2f;
+            font-size: 14px;
+        }
+        
+        .product-suggestion .product-savings {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: #4caf50;
+            color: white;
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+        
+        .chatbot-input-container {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        #chatbot-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            outline: none;
+        }
+        
+        .send-message {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 10px 15px;
+            margin-left: 10px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .send-message:hover {
+            background-color: #2980b9;
+        }
+        
+        .open-chatbot {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 12px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 9999;
+            transition: all 0.3s ease;
+            animation: pulse 2s infinite;
+        }
+        
+        .open-chatbot:hover {
+            background-color: #2980b9;
+            transform: translateY(-3px);
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .chatbot-container {
+                width: 90%;
+                right: 5%;
+                left: 5%;
+            }
+        }
+        
+        .product-savings {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background-color: #e53935;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        /* Typing indicator animation for chatbot */
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            padding: 6px 12px;
+        }
+        
+        .typing-indicator span {
+            height: 8px;
+            width: 8px;
+            background-color: #95a5a6;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+            animation: typing 1.2s infinite ease-in-out;
+        }
+        
+        .typing-indicator span:nth-child(1) {
+            animation-delay: 0s;
+        }
+        
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+            margin-right: 0;
+        }
+        
+        @keyframes typing {
+            0% {
+                transform: translateY(0px);
+                background-color: #95a5a6;
+            }
+            50% {
+                transform: translateY(-6px);
+                background-color: #3498db;
+            }
+            100% {
+                transform: translateY(0px);
+                background-color: #95a5a6;
+            }
+        }
+        
+        /* Style for product suggestions inside the chatbot */
+        .bot-message .suggested-products {
+            margin-top: 10px;
+            max-width: 100%;
+        }
+        
+        .bot-message .product-suggestion {
+            max-width: 140px;
+            margin: 0 5px 10px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .bot-message .product-suggestion:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Additional styles for option-based chatbot */
+        .chat-options {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .option-btn {
+            background-color: #e1f5fe;
+            border: none;
+            border-radius: 18px;
+            padding: 8px 15px;
+            text-align: left;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-size: 14px;
+        }
+        
+        .option-btn:hover {
+            background-color: #b3e5fc;
+        }
+        
+        .product-compare-item {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .product-compare-item:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 13px;
+        }
+        
+        .comparison-table th {
+            background-color: #f5f5f5;
+            text-align: left;
+            padding: 8px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .comparison-table td {
+            padding: 8px;
+            border-bottom: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('home') }}">
+                <i class="fas fa-shopping-cart me-2"></i>E-Commerce
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('home') }}">
+                            <i class="fas fa-home me-1"></i>Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('products') }}">
+                            <i class="fas fa-box me-1"></i>Products
+                        </a>
+                    </li>
+                    {% if is_logged_in %}
+                        {% if user_role == 'user' %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('cart') }}">
+                                <i class="fas fa-shopping-cart me-1"></i>Cart
+                            </a>
+                        </li>
+                        {% endif %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('dashboard') }}">
+                                <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('logout') }}">
+                                <i class="fas fa-sign-out-alt me-1"></i>Logout
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('login') }}">
+                                <i class="fas fa-sign-in-alt me-1"></i>Login
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('register') }}">
+                                <i class="fas fa-user-plus me-1"></i>Register
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} mt-4">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <div class="product-container">
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="product-gallery">
+                        {% if product.image %}
+                        <img src="{{ url_for('static', filename='uploads/' + product.image) }}" alt="{{ product.name }}" class="product-image" style="max-width:100%;max-height:450px;object-fit:contain;border-radius:12px;box-shadow:0 8px 20px rgba(0,0,0,0.1);">
+                        {% else %}
+                        <img src="https://via.placeholder.com/800x600?text=No+Image" alt="No Image" class="product-image" style="max-width:100%;max-height:450px;object-fit:contain;border-radius:12px;box-shadow:0 8px 20px rgba(0,0,0,0.1);">
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <h1 class="product-title">{{ product.name }}</h1>
+                    
+                    <div class="product-rating">
+                        <div class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-half-alt"></i>
+                        </div>
+                        <span class="review-count">256 reviews</span>
+                    </div>
+                    
+                    <div class="product-price">
+                        ₹{{ "%.2f"|format(product.price|to_inr) }}
+                        <span class="product-original-price">₹{{ "%.2f"|format((product.price|float * 1.2)|to_inr) }}</span>
+                        <span class="product-discount">20% OFF</span>
+                    </div>
+                    
+                    <div class="product-available">
+                        <i class="fas fa-check-circle me-2"></i> In Stock
+                    </div>
+                    
+                    <p class="product-description">{{ product.description }}</p>
+                    
+                    {% if is_logged_in and user_role == 'user' %}
+                    <form method="POST" action="{{ url_for('add_to_cart', product_id=product.id) }}">
+                        <div class="product-quantity">
+                            <span class="quantity-label">Quantity:</span>
+                            <input type="number" name="quantity" value="1" min="1" class="quantity-input">
+                        </div>
+                        
+                        <div class="d-flex gap-3">
+                            <button type="submit" class="btn btn-cart">
+                                <i class="fas fa-shopping-cart"></i>
+                                Add to Cart
+                            </button>
+                            <button type="button" class="btn btn-wishlist">
+                                <i class="fas fa-heart"></i>
+                                Wishlist
+                            </button>
+                        </div>
+                    </form>
+                    {% elif not is_logged_in %}
+                    <div class="mt-4">
+                        <a href="{{ url_for('login') }}" class="btn btn-cart">
+                            <i class="fas fa-sign-in-alt"></i>
+                            Login to Purchase
+                        </a>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="seller-info mt-4">
+                        <div class="seller-avatar">
+                            <i class="fas fa-store"></i>
+                        </div>
+                        <div>
+                            <h6 class="seller-name">{{ seller.username }}</h6>
+                            <div class="seller-rating">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                (Seller ID: {{ seller.id }})
+                            </div>
+                            {% if is_logged_in and user_role == 'user' %}
+                            <a href="{{ url_for('chat', other_user_id=seller.id) }}" class="btn btn-sm btn-primary mt-2">
+                                <i class="fas fa-comments me-1"></i>Chat with Seller
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="product-details">
+                <h3 class="details-title">Product Details</h3>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="detail-item">
+                            <div class="detail-label">SKU</div>
+                            <div class="detail-value">PRD-{{ product.id }}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Category</div>
+                            <div class="detail-value">{{ product.category or 'Uncategorized' }}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Seller</div>
+                            <div class="detail-value">{{ seller.username }}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Brand</div>
+                            <div class="detail-value">Premium Tech</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-item">
+                            <div class="detail-label">Weight</div>
+                            <div class="detail-value">1.2 kg</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Color</div>
+                            <div class="detail-value">Midnight Black</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Warranty</div>
+                            <div class="detail-value">1 Year Limited Warranty</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="similar-products">
+            <h3 class="section-title">You May Also Like</h3>
+            <div class="row g-4">
+                {% for similar_product in similar_products %}
+                <div class="col-md-3">
+                    <div class="product-card">
+                        {% if similar_product.image %}
+                        <img src="{{ url_for('static', filename='uploads/' + similar_product.image) }}" alt="{{ similar_product.name }}" class="product-img">
+                        {% else %}
+                        <img src="https://via.placeholder.com/400/320" alt="Similar Product" class="product-img">
+                        {% endif %}
+                        <div class="product-body">
+                            <h5 class="card-title">{{ similar_product.name }}</h5>
+                            <p class="card-price">₹{{ "%.2f"|format(similar_product.price|to_inr) }}</p>
+                            <div class="d-grid">
+                                <a href="{{ url_for('product_detail', product_id=similar_product.id) }}" class="btn btn-outline-primary">View Details</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <!-- Display placeholders if no similar products found -->
+                <div class="col-md-12 text-center">
+                    <p>No similar products found in this category.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Chatbot Interface -->
+    <div id="chatbot-container" class="chatbot-container">
+        <div id="chatbot-header" class="chatbot-header">
+            <h3>Shopping Assistant</h3>
+            <button id="close-chatbot" class="close-chatbot">×</button>
+        </div>
+        <div id="chatbot-messages" class="chatbot-messages">
+            <div class="chatbot-message bot-message">
+                <p>Hello! How can I help you with {{ product.name }} today?</p>
+                <div class="chat-options">
+                    <button class="option-btn" onclick="selectOption('product_details')">Product Details</button>
+                    <button class="option-btn" onclick="selectOption('product_comparison')">Compare with Other Products</button>
+                    <button class="option-btn" onclick="selectOption('show_similar')">Show Similar Products</button>
+                    <button class="option-btn" onclick="selectOption('sort_by_price')">Sort by Price</button>
+                </div>
+                <p style="margin-top: 15px; font-size: 0.9em; color: #666;">You can also type questions like:</p>
+                <ul style="font-size: 0.9em; color: #666; padding-left: 20px;">
+                    <li>Show me cheaper alternatives</li>
+                    <li>Tell me about this product's features</li>
+                    <li>Are there similar products?</li>
+                    <li>Show me other {{ product.category }} products</li>
+                    <li>Products sorted by price</li>
+                </ul>
+            </div>
+        </div>
+        <div class="chatbot-input-container">
+            <input type="hidden" id="product-id" value="{{ product.id }}">
+            <input type="hidden" id="product-name" value="{{ product.name }}">
+            <input type="hidden" id="product-price" value="{{ product.price }}">
+            <input type="hidden" id="product-category" value="{{ product.category }}">
+            <input type="hidden" id="product-description" value="{{ product.description }}">
+            <input type="text" id="chatbot-input" placeholder="Type here..." style="display: none;">
+            <button id="send-message" class="send-message" style="display: none;">Send</button>
+        </div>
+    </div>
+
+    <button id="open-chatbot" class="open-chatbot">
+        <i class="fas fa-comments"></i> Shopping Assistant
+    </button>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Removed thumbnail click handlers as thumbnails have been removed
+            
+            // Chatbot functionality
+            const openChatbotBtn = document.getElementById('open-chatbot');
+            const closeChatbotBtn = document.getElementById('close-chatbot');
+            const chatbotContainer = document.getElementById('chatbot-container');
+            const chatbotMessages = document.getElementById('chatbot-messages');
+            const chatbotInput = document.getElementById('chatbot-input');
+            const sendMessageBtn = document.getElementById('send-message');
+            
+            // Store the product ID from the hidden input field
+            const productId = document.getElementById('product-id').value;
+            const productCategory = document.getElementById('product-category').value;
+            
+            // Toggle chatbot visibility
+            openChatbotBtn.addEventListener('click', function() {
+                chatbotContainer.classList.add('active');
+                // Make the input field visible to allow free-form text entry
+                chatbotInput.style.display = 'block';
+                sendMessageBtn.style.display = 'block';
+            });
+            
+            closeChatbotBtn.addEventListener('click', function() {
+                chatbotContainer.classList.remove('active');
+            });
+            
+            // Set up the event listener for the chatbot input field
+            chatbotInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && chatbotInput.value.trim() !== '') {
+                    const userMessage = chatbotInput.value.trim();
+                    addUserMessage(userMessage);
+                    processChatbotQuery(userMessage);
+                    chatbotInput.value = '';
+                }
+            });
+            
+            // Set up the event listener for the send button
+            sendMessageBtn.addEventListener('click', function() {
+                if (chatbotInput.value.trim() !== '') {
+                    const userMessage = chatbotInput.value.trim();
+                    addUserMessage(userMessage);
+                    processChatbotQuery(userMessage);
+                    chatbotInput.value = '';
+                }
+            });
+            
+            // Function to display bot message
+            function addBotMessage(message, options = null) {
+                const msgElement = document.createElement('div');
+                msgElement.className = 'chatbot-message bot-message';
+                let messageHtml = `<p>${message}</p>`;
+                
+                if (options) {
+                    messageHtml += `<div class="chat-options">`;
+                    options.forEach(option => {
+                        messageHtml += `<button class="option-btn" onclick="selectOption('${option.value}')">${option.text}</button>`;
+                    });
+                    messageHtml += `</div>`;
+                }
+                
+                msgElement.innerHTML = messageHtml;
+                chatbotMessages.appendChild(msgElement);
+                chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+            }
+            
+            // Function to display user message
+            function addUserMessage(message) {
+                const msgElement = document.createElement('div');
+                msgElement.className = 'chatbot-message user-message';
+                msgElement.innerHTML = `<p>${message}</p>`;
+                chatbotMessages.appendChild(msgElement);
+                chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+            }
+            
+            // Make selectOption function globally available
+            window.selectOption = function(option, value = null) {
+                if (option === 'product_details') {
+                    const productName = document.getElementById('product-name').value;
+                    const productPrice = document.getElementById('product-price').value;
+                    const productCategory = document.getElementById('product-category').value || 'Uncategorized';
+                    const productDescription = document.getElementById('product-description').value;
+                    
+                    addUserMessage('Product Details');
+                    
+                    const formattedPrice = parseFloat(productPrice).toFixed(2);
+                    
+                    const detailsMessage = `
+                        <strong>Name:</strong> ${productName}<br>
+                        <strong>Price:</strong> ₹${formattedPrice}<br>
+                        <strong>Category:</strong> ${productCategory}<br>
+                        <strong>Description:</strong> ${productDescription}
+                    `;
+                    
+                    addBotMessage(detailsMessage);
+                    
+                    // Ask if they want to do anything else
+                    setTimeout(() => {
+                        addBotMessage("Is there anything else you would like to know?", [
+                            { text: "Compare with Other Products", value: "product_comparison" },
+                            { text: "No, thank you", value: "end_conversation" }
+                        ]);
+                    }, 500);
+                    
+                } else if (option === 'show_similar') {
+                    addUserMessage('Show Similar Products');
+                    const productCategory = document.getElementById('product-category').value || 'Uncategorized';
+                    showLoadingIndicator();
+                    processChatbotQuery(`Show me similar products in the ${productCategory} category`);
+                } else if (option === 'product_comparison') {
+                    addUserMessage('Compare with Other Products');
+                    addBotMessage("Which product would you like to compare with? Please type the name or you can select from available products in this category.", [
+                        { text: "Show Available Products", value: "show_category_products" }
+                    ]);
+                    
+                    // Show the input field for product name entry
+                    chatbotInput.style.display = 'block';
+                    sendMessageBtn.style.display = 'block';
+                    
+                    // Set up the event listener for the input
+                    chatbotInput.focus();
+                    sendMessageBtn.onclick = function() {
+                        const productNameToCompare = chatbotInput.value.trim();
+                        if (productNameToCompare) {
+                            addUserMessage(productNameToCompare);
+                            chatbotInput.value = '';
+                            
+                            // Show a loading indicator
+                            showLoadingIndicator();
+                            
+                            // Make an API call to search for the product
+                            fetch(`/api/search_products?query=${encodeURIComponent(productNameToCompare)}&category=${encodeURIComponent(productCategory)}`)
+                                .then(response => response.json())
+                                .then(data => {
+                                    removeLoadingIndicator();
+                                    
+                                    if (data.products && data.products.length > 0) {
+                                        // Show product options for comparison
+                                        showProductComparisonOptions(data.products);
+                                    } else {
+                                        addBotMessage("Sorry, I couldn't find any products matching that name. Would you like to see available products in this category?", [
+                                            { text: "Show Available Products", value: "show_category_products" },
+                                            { text: "Try Another Name", value: "product_comparison" }
+                                        ]);
+                                    }
+                                })
+                                .catch(error => {
+                                    removeLoadingIndicator();
+                                    console.error('Error:', error);
+                                    addBotMessage("Sorry, I had trouble searching for products. Would you like to see available products in this category?", [
+                                        { text: "Show Available Products", value: "show_category_products" },
+                                        { text: "Try Again", value: "product_comparison" }
+                                    ]);
+                                });
+                            
+                            // Hide the input field again
+                            chatbotInput.style.display = 'none';
+                            sendMessageBtn.style.display = 'none';
+                        }
+                    };
+                    
+                    chatbotInput.onkeypress = function(e) {
+                        if (e.key === 'Enter') {
+                            sendMessageBtn.onclick();
+                        }
+                    };
+                    
+                } else if (option === 'show_category_products') {
+                    addUserMessage('Show Available Products');
+                    showLoadingIndicator();
+                    
+                    // Get products in the same category
+                    fetch(`/api/category_products?category=${encodeURIComponent(productCategory)}&product_id=${productId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            removeLoadingIndicator();
+                            
+                            if (data.products && data.products.length > 0) {
+                                showProductComparisonOptions(data.products);
+                            } else {
+                                addBotMessage("Sorry, there are no other products in this category to compare with.");
+                            }
+                        })
+                        .catch(error => {
+                            removeLoadingIndicator();
+                            console.error('Error:', error);
+                            addBotMessage("Sorry, I had trouble fetching products in this category.");
+                        });
+                        
+                } else if (option === 'compare_with_product') {
+                    const compareProductId = value;
+                    addUserMessage(`Compare with Product #${compareProductId}`);
+                    showLoadingIndicator();
+                    
+                    // Get both products and compare them
+                    fetch(`/api/compare_products?product1_id=${productId}&product2_id=${compareProductId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            removeLoadingIndicator();
+                            
+                            if (data.product1 && data.product2) {
+                                showProductComparison(data.product1, data.product2);
+                            } else {
+                                addBotMessage("Sorry, I couldn't retrieve the product information for comparison.");
+                            }
+                        })
+                        .catch(error => {
+                            removeLoadingIndicator();
+                            console.error('Error:', error);
+                            addBotMessage("Sorry, I had trouble comparing these products.");
+                        });
+                        
+                } else if (option === 'end_conversation') {
+                    addUserMessage('No, thank you');
+                    addBotMessage("You're welcome! If you need any more assistance, just click on the chat button again.");
+                } else if (option === 'sort_by_price') {
+                    addUserMessage('Sort by Price');
+                    addBotMessage("How would you like to sort the products?", [
+                        { text: "Price (Low to High)", value: "price_low_to_high" },
+                        { text: "Price (High to Low)", value: "price_high_to_low" }
+                    ]);
+                } else if (option === 'price_low_to_high') {
+                    addUserMessage('Price (Low to High)');
+                    showLoadingIndicator();
+                    processChatbotQuery("low to high");
+                } else if (option === 'price_high_to_low') {
+                    addUserMessage('Price (High to Low)');
+                    showLoadingIndicator();
+                    processChatbotQuery("high to low");
+                }
+            };
+            
+            // Function to show product comparison options
+            function showProductComparisonOptions(products) {
+                let productsListHtml = `<p>Here are some products you can compare with:</p><div class="chat-options">`;
+                
+                // Limit to 4 products
+                const productsToShow = products.slice(0, 4);
+                
+                productsToShow.forEach(product => {
+                    productsListHtml += `
+                        <div class="product-compare-item" onclick="selectOption('compare_with_product', '${product.id}')">
+                            <strong>${product.name}</strong> - ₹${parseFloat(product.price).toFixed(2)}
+                        </div>
+                    `;
+                });
+                
+                productsListHtml += `</div>`;
+                
+                const msgElement = document.createElement('div');
+                msgElement.className = 'chatbot-message bot-message';
+                msgElement.innerHTML = productsListHtml;
+                chatbotMessages.appendChild(msgElement);
+                chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+            }
+            
+            // Function to show product comparison
+            function showProductComparison(product1, product2) {
+                const comparisonHtml = `
+                    <p>Here's a comparison between <strong>${product1.name}</strong> and <strong>${product2.name}</strong>:</p>
+                    <table class="comparison-table">
+                        <tr>
+                            <th>Feature</th>
+                            <th>${product1.name}</th>
+                            <th>${product2.name}</th>
+                        </tr>
+                        <tr>
+                            <td>Price</td>
+                            <td>₹${parseFloat(product1.price).toFixed(2)}</td>
+                            <td>₹${parseFloat(product2.price).toFixed(2)}</td>
+                        </tr>
+                        <tr>
+                            <td>Category</td>
+                            <td>${product1.category || 'Uncategorized'}</td>
+                            <td>${product2.category || 'Uncategorized'}</td>
+                        </tr>
+                        <tr>
+                            <td>Description</td>
+                            <td>${product1.description}</td>
+                            <td>${product2.description}</td>
+                        </tr>
+                    </table>
+                `;
+                
+                const msgElement = document.createElement('div');
+                msgElement.className = 'chatbot-message bot-message';
+                msgElement.innerHTML = comparisonHtml;
+                chatbotMessages.appendChild(msgElement);
+                chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+                
+                // Ask if they want to compare with another product
+                setTimeout(() => {
+                    addBotMessage("Would you like to compare with another product?", [
+                        { text: "Compare with Another Product", value: "product_comparison" },
+                        { text: "No, thank you", value: "end_conversation" }
+                    ]);
+                }, 500);
+            }
+        });
+
+        function showLoadingIndicator() {
+            // Create a temporary typing indicator
+            const typingIndicator = document.createElement('div');
+            typingIndicator.className = 'chatbot-message bot-message typing-indicator';
+            typingIndicator.id = 'typing-indicator';
+            typingIndicator.innerHTML = `
+                <span></span>
+                <span></span>
+                <span></span>
+            `;
+            
+            const chatMessages = document.getElementById('chatbot-messages');
+            chatMessages.appendChild(typingIndicator);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function removeLoadingIndicator() {
+            // Remove the typing indicator
+            const typingIndicator = document.getElementById('typing-indicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+
+        function toggleChatbot() {
+            const chatbot = document.querySelector('.chatbot-container');
+            chatbot.classList.toggle('active');
+        }
+
+        function showProductDetails(product) {
+            const productInfoDiv = document.createElement('div');
+            productInfoDiv.className = 'product-info';
+            
+            const productName = document.createElement('div');
+            productName.innerHTML = `<strong>Product:</strong> ${product.name}`;
+            
+            const productDescription = document.createElement('div');
+            productDescription.innerHTML = `<strong>Description:</strong> ${product.description}`;
+            
+            const productPrice = document.createElement('div');
+            const formattedPrice = parseFloat(product.price).toFixed(2);
+            productPrice.innerHTML = `<strong>Price:</strong> ₹${formattedPrice}<br>`;
+            
+            const viewButton = document.createElement('a');
+            viewButton.href = product.url;
+            viewButton.className = 'btn btn-sm btn-primary mt-2';
+            viewButton.innerHTML = 'View Product';
+            viewButton.target = '_blank';  // Open in new tab
+            
+            productInfoDiv.appendChild(productName);
+            productInfoDiv.appendChild(productDescription);
+            productInfoDiv.appendChild(productPrice);
+            productInfoDiv.appendChild(viewButton);
+            
+            return productInfoDiv;
+        }
+
+        // Add processChatbotQuery function to enable flexible chatbot interactions
+        function processChatbotQuery(query) {
+            // Show a loading indicator
+            showLoadingIndicator();
+            
+            // Get the product context
+            const productId = document.getElementById('product-id').value;
+            const productName = document.getElementById('product-name').value;
+            const productCategory = document.getElementById('product-category').value || 'Uncategorized';
+            
+            // Make an API call to the chatbot endpoint
+            fetch('/chatbot_query', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    query: query,
+                    context: [{
+                        type: 'product',
+                        id: productId,
+                        name: productName,
+                        category: productCategory
+                    }]
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                removeLoadingIndicator();
+                
+                // Add the bot's response
+                let messageHTML = `<p>${data.answer}</p>`;
+                
+                // Add suggested products if any
+                if (data.suggested_products && data.suggested_products.length > 0) {
+                    messageHTML += `<div class="suggested-products">`;
+                    data.suggested_products.forEach(product => {
+                        const productPrice = parseFloat(product.price).toFixed(2);
+                        messageHTML += `
+                            <div class="product-suggestion" onclick="window.location.href='${product.url}'">
+                                ${product.image ? 
+                                `<img src="/static/uploads/${product.image}" alt="${product.name}" style="max-width:100%;height:80px;object-fit:contain;">` : 
+                                `<div class="no-image" style="height:80px;display:flex;align-items:center;justify-content:center;background:#f5f5f5;">No Image</div>`
+                                }
+                                <div class="product-name">${product.name}</div>
+                                <div class="product-price">₹${productPrice}</div>
+                            </div>
+                        `;
+                    });
+                    messageHTML += `</div>`;
+                }
+                
+                addBotMessage(messageHTML);
+            })
+            .catch(error => {
+                removeLoadingIndicator();
+                console.error('Error:', error);
+                addBotMessage("Sorry, I had trouble processing your request. Please try again.");
+            });
+        }
+    </script>
+</body>
+</html>

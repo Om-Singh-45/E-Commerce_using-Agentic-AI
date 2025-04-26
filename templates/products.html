@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Products - E-Commerce</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --bg-color: #f8f9fa;
+            --text-color: #333;
+            --border-radius: 8px;
+            --box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            padding-bottom: 2rem;
+        }
+        
+        .navbar {
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            background: linear-gradient(to right, #2c3e50, #3498db) !important;
+            padding: 12px 0;
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            letter-spacing: 0.5px;
+        }
+        
+        .nav-link {
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin: 0 5px;
+            padding: 8px 15px !important;
+            border-radius: var(--border-radius);
+        }
+        
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .page-header {
+            background: linear-gradient(to right, rgba(44, 62, 80, 0.8), rgba(52, 152, 219, 0.8));
+            padding: 40px 0;
+            color: white;
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .page-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(to right, #3498db, #2ecc71);
+        }
+        
+        .page-title {
+            font-weight: 700;
+            margin-bottom: 0;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .search-container {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .search-input {
+            border-radius: 50px;
+            padding: 12px 20px;
+            border: 1px solid #ddd;
+            transition: all 0.3s ease;
+        }
+        
+        .search-input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        }
+        
+        .btn-search {
+            border-radius: 50px;
+            padding: 10px 25px;
+            background: linear-gradient(to right, #3498db, #2ecc71);
+            border: none;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-search:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .filter-container {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .filter-title {
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            position: relative;
+            padding-bottom: 10px;
+        }
+        
+        .filter-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 50px;
+            height: 3px;
+            background: linear-gradient(to right, #3498db, #2ecc71);
+            border-radius: 2px;
+        }
+        
+        .filter-checkbox {
+            margin-bottom: 10px;
+        }
+        
+        .filter-checkbox a.category-link {
+            text-decoration: none;
+            color: #555;
+            display: block;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+        
+        .filter-checkbox a.category-link:hover {
+            background-color: rgba(52, 152, 219, 0.1);
+            color: var(--primary-color);
+        }
+        
+        .filter-checkbox a.category-link.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .filter-checkbox label {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+        
+        .filter-checkbox label span {
+            margin-left: 8px;
+        }
+        
+        .filter-price {
+            margin-top: 20px;
+        }
+        
+        .price-inputs {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .price-input {
+            width: 100%;
+            border-radius: var(--border-radius);
+            padding: 8px;
+            border: 1px solid #ddd;
+        }
+        
+        .product-card {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            height: 100%;
+            position: relative;
+            border: none;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .product-card .card-img-top {
+            width: 100%;
+            height: 250px;
+            object-fit: contain;
+            padding: 20px;
+            background-color: #fff;
+            transition: all 0.3s ease;
+        }
+        
+        .card-body {
+            padding: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #2c3e50;
+            height: 2.4em;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            line-clamp: 2;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+        
+        .card-rating {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .rating-stars {
+            color: #f39c12;
+            margin-right: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .rating-count {
+            color: #7f8c8d;
+            font-size: 0.8rem;
+        }
+        
+        .card-price {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .original-price {
+            font-size: 0.9rem;
+            text-decoration: line-through;
+            color: #95a5a6;
+            margin-left: 8px;
+        }
+        
+        .card-text {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            flex-grow: 1;
+        }
+        
+        .btn-view {
+            background: linear-gradient(to right, #3498db, #2ecc71);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 8px 20px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: block;
+            text-align: center;
+            text-decoration: none;
+        }
+        
+        .btn-view:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            color: white;
+        }
+        
+        .card-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: linear-gradient(to right, #2ecc71, #1abc9c);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            z-index: 1;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .pagination {
+            margin-top: 40px;
+            justify-content: center;
+        }
+        
+        .page-item .page-link {
+            color: var(--primary-color);
+            border: 1px solid #ddd;
+            margin: 0 3px;
+            border-radius: var(--border-radius);
+            transition: all 0.3s ease;
+        }
+        
+        .page-item.active .page-link {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .page-item .page-link:hover {
+            background-color: rgba(52, 152, 219, 0.1);
+        }
+        
+        .category-tabs {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+        
+        .nav-tabs {
+            border-bottom: none;
+        }
+        
+        .nav-tabs .nav-link {
+            border: none;
+            padding: 15px 20px;
+            font-weight: 600;
+            color: #7f8c8d;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-tabs .nav-link.active {
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--primary-color);
+        }
+        
+        .nav-tabs .nav-link:hover:not(.active) {
+            background-color: rgba(52, 152, 219, 0.05);
+        }
+        
+        .sort-dropdown button {
+            background-color: white;
+            color: #2c3e50;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            padding: 10px 20px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .sort-dropdown button:hover {
+            background-color: rgba(52, 152, 219, 0.05);
+        }
+        
+        .dropdown-menu {
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            border: none;
+            padding: 10px 0;
+        }
+        
+        .dropdown-item {
+            padding: 8px 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .dropdown-item:hover {
+            background-color: rgba(52, 152, 219, 0.05);
+        }
+        
+        .quick-action {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 10;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .product-card:hover .quick-action {
+            opacity: 1;
+        }
+        
+        .btn-wish {
+            background-color: white;
+            color: #e74c3c;
+            border: none;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-wish:hover {
+            background-color: #e74c3c;
+            color: white;
+        }
+        
+        .cart-section {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 10px 20px;
+            background-color: rgba(255, 255, 255, 0.9);
+            transform: translateY(100%);
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .product-card:hover .cart-section {
+            transform: translateY(0);
+        }
+        
+        .btn-add-cart {
+            background: linear-gradient(to right, #3498db, #2ecc71);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 5px 15px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-add-cart:hover {
+            transform: translateY(-2px);
+        }
+        
+        /* Additional styles for sorting */
+        .dropdown-item.active {
+            background-color: rgba(52, 152, 219, 0.1);
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+        
+        .sort-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9rem;
+            background-color: rgba(52, 152, 219, 0.1);
+            color: var(--primary-color);
+            padding: 3px 10px;
+            border-radius: 15px;
+            margin-left: 8px;
+        }
+        
+        /* Product filtering */
+        .filter-section {
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        
+        /* Product card styles */
+        .product-card {
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            height: 100%;
+            position: relative;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        .product-card .card-img-top {
+            height: 200px;
+            object-fit: contain;
+            padding: 15px;
+        }
+        
+        .product-card .card-title {
+            font-size: 1rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .product-card .card-text {
+            font-size: 0.9rem;
+            height: 3em;
+            overflow: hidden;
+        }
+        
+        .product-price {
+            font-weight: bold;
+            color: #0d6efd;
+        }
+        
+        .product-rating {
+            color: #ffc107;
+        }
+        
+        /* Dropdown styling */
+        .dropdown-item.active {
+            background-color: rgba(13, 110, 253, 0.1);
+            color: #0d6efd;
+            font-weight: 500;
+        }
+        
+        /* Sort indicator */
+        .sort-indicator {
+            display: inline-block;
+            background-color: #e9f2ff;
+            color: #0d6efd;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-shopping-cart me-2"></i>E-Commerce
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">
+                            <i class="fas fa-home me-1"></i>Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/products">
+                            <i class="fas fa-box me-1"></i>Products
+                        </a>
+                    </li>
+                    {% if session['user_id'] %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="/cart">
+                                <i class="fas fa-shopping-cart me-1"></i>Cart (0)
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/dashboard">
+                                <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/logout">
+                                <i class="fas fa-sign-out-alt me-1"></i>Logout
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="/login">
+                                <i class="fas fa-sign-in-alt me-1"></i>Login
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/register">
+                                <i class="fas fa-user-plus me-1"></i>Register
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="page-header">
+        <div class="container">
+            <h2 class="page-title">Shop Our Products</h2>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="search-container">
+            <form action="{{ url_for('products') }}" method="GET" id="search-form">
+                <div class="row">
+                    <div class="col-md-8">
+                        <input type="text" name="search" class="form-control search-input" placeholder="Search for products..." value="{{ search_query }}">
+                        <input type="hidden" name="sort_by" value="{{ sort_by }}">
+                    </div>
+                    <div class="col-md-2">
+                        <select name="category" class="form-select search-input" onchange="this.form.submit()">
+                            <option value="" {% if not selected_category %}selected{% endif %}>All Categories</option>
+                            {% for category in categories %}
+                            <option value="{{ category }}" {% if selected_category == category %}selected{% endif %}>{{ category }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-search w-100">
+                            <i class="fas fa-search me-2"></i>Search
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="category-tabs">
+            <ul class="nav nav-tabs" id="productTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all-products" type="button" role="tab">All Products</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="featured-tab" data-bs-toggle="tab" data-bs-target="#featured-products" type="button" role="tab">Featured</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="bestsellers-tab" data-bs-toggle="tab" data-bs-target="#bestsellers" type="button" role="tab">Best Sellers</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="new-tab" data-bs-toggle="tab" data-bs-target="#new-arrivals" type="button" role="tab">New Arrivals</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="sale-tab" data-bs-toggle="tab" data-bs-target="#sale-items" type="button" role="tab">On Sale</button>
+                </li>
+            </ul>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-3">
+                <div class="filter-container">
+                    <h5 class="filter-title">Categories</h5>
+                    <div class="filter-checkbox">
+                        <a href="{{ url_for('products', search=search_query, min_price=min_price, max_price=max_price, sort_by=sort_by) }}" class="category-link {% if not selected_category %}active{% endif %}">
+                            <span>All Categories</span>
+                        </a>
+                    </div>
+                    {% for category in categories %}
+                    <div class="filter-checkbox">
+                        <a href="{{ url_for('products', category=category, search=search_query, min_price=min_price, max_price=max_price, sort_by=sort_by) }}" class="category-link {% if selected_category == category %}active{% endif %}">
+                            <span>{{ category }}</span>
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="filter-container">
+                    <h5 class="filter-title">Price Range</h5>
+                    <div class="filter-price">
+                        <form action="{{ url_for('products') }}" method="GET" id="price-filter-form">
+                            <!-- Preserve existing search params -->
+                            <input type="hidden" name="search" value="{{ search_query }}">
+                            <input type="hidden" name="category" value="{{ selected_category }}">
+                            <input type="hidden" name="sort_by" value="{{ sort_by }}">
+                            
+                            <div class="price-inputs">
+                                <input type="number" name="min_price" class="form-control price-input" placeholder="Min" value="{{ min_price }}" min="0">
+                                <input type="number" name="max_price" class="form-control price-input" placeholder="Max" value="{{ max_price }}" min="0">
+                            </div>
+                            <div class="mt-2">
+                                <button type="submit" class="btn btn-sm btn-primary w-100">Apply</button>
+                                {% if min_price or max_price %}
+                                <a href="{{ url_for('products', search=search_query, category=selected_category, sort_by=sort_by) }}" class="btn btn-sm btn-outline-secondary w-100 mt-2">
+                                    <i class="fas fa-times me-1"></i> Clear Price Filter
+                                </a>
+                                {% endif %}
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-9">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="text-primary">
+                        {% if category_name %}
+                            {{ category_name }} Products
+                        {% elif search_query %}
+                            Search Results for "{{ search_query }}"
+                        {% else %}
+                            All Products
+                        {% endif %}
+                        
+                        <!-- Sort indicator -->
+                        {% if sort_by and sort_by != 'featured' %}
+                        <span class="sort-indicator">
+                            {% if sort_by == 'price_low_high' %}
+                                <i class="fas fa-sort-amount-down-alt"></i> Price: Low to High
+                            {% elif sort_by == 'price_high_low' %}
+                                <i class="fas fa-sort-amount-up"></i> Price: High to Low
+                            {% elif sort_by == 'newest' %}
+                                <i class="fas fa-calendar-alt"></i> Newest First
+                            {% elif sort_by == 'rating' %}
+                                <i class="fas fa-star"></i> Highest Rated
+                            {% elif sort_by == 'popularity' %}
+                                <i class="fas fa-eye"></i> Most Popular
+                            {% elif sort_by == 'trending' %}
+                                <i class="fas fa-chart-line"></i> Trending
+                            {% endif %}
+                        </span>
+                        {% endif %}
+                    </h2>
+                    
+                    <!-- Sort dropdown -->
+                    <div class="dropdown">
+                        <button class="btn btn-outline-primary dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            {% if sort_by == 'price_low_high' %}
+                                Price: Low to High
+                            {% elif sort_by == 'price_high_low' %}
+                                Price: High to Low
+                            {% elif sort_by == 'newest' %}
+                                Newest First
+                            {% elif sort_by == 'rating' %}
+                                Highest Rated
+                            {% elif sort_by == 'trending' %}
+                                Trending
+                            {% elif sort_by == 'popularity' %}
+                                Most Popular
+                            {% else %}
+                                Featured
+                            {% endif %}
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="sortDropdown">
+                            <li><a class="dropdown-item {% if sort_by == 'popularity' %}active{% endif %}" 
+                                href="{{ url_for('products', search=search_query, category=selected_category, min_price=min_price, max_price=max_price, sort_by='popularity') }}">Most Popular</a></li>
+                            <li><a class="dropdown-item {% if sort_by == 'trending' %}active{% endif %}" 
+                                href="{{ url_for('products', search=search_query, category=selected_category, min_price=min_price, max_price=max_price, sort_by='trending') }}">Trending</a></li>
+                            <li><a class="dropdown-item {% if sort_by == 'featured' %}active{% endif %}" 
+                                href="{{ url_for('products', search=search_query, category=selected_category, min_price=min_price, max_price=max_price, sort_by='featured') }}">Featured</a></li>
+                            <li><a class="dropdown-item {% if sort_by == 'price_low_high' %}active{% endif %}" 
+                                href="{{ url_for('products', search=search_query, category=selected_category, min_price=min_price, max_price=max_price, sort_by='price_low_high') }}">Price: Low to High</a></li>
+                            <li><a class="dropdown-item {% if sort_by == 'price_high_low' %}active{% endif %}" 
+                                href="{{ url_for('products', search=search_query, category=selected_category, min_price=min_price, max_price=max_price, sort_by='price_high_low') }}">Price: High to Low</a></li>
+                            <li><a class="dropdown-item {% if sort_by == 'rating' %}active{% endif %}" 
+                                href="{{ url_for('products', search=search_query, category=selected_category, min_price=min_price, max_price=max_price, sort_by='rating') }}">Customer Rating</a></li>
+                            <li><a class="dropdown-item {% if sort_by == 'newest' %}active{% endif %}"
+                                href="{{ url_for('products', search=search_query, category=selected_category, min_price=min_price, max_price=max_price, sort_by='newest') }}">Newest First</a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="row g-4">
+                    {% for product in products %}
+                    <div class="col-md-4">
+                        <div class="product-card">
+                            <!-- Badge for sale or new items -->
+                            {% if product.cart_count > 5 %}
+                            <span class="card-badge">Popular</span>
+                            {% elif product.view_count > 20 %}
+                            <span class="card-badge">Trending</span>
+                            {% endif %}
+                            
+                            <!-- Quick action buttons -->
+                            <div class="quick-action">
+                                <button class="btn-wish">
+                                    <i class="far fa-heart"></i>
+                                </button>
+                            </div>
+                            
+                            {% if product.image %}
+                            <img src="{{ url_for('static', filename='uploads/' + product.image) }}" class="card-img-top" alt="{{ product.name }}">
+                            {% else %}
+                            <img src="https://via.placeholder.com/400x400?text=No+Image" class="card-img-top" alt="No Image">
+                            {% endif %}
+                            <div class="card-body">
+                                <h5 class="card-title">{{ product.name }}</h5>
+                                <div class="card-rating">
+                                    <div class="rating-stars">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star-half-alt"></i>
+                                    </div>
+                                    <span class="rating-count">(48)</span>
+                                </div>
+                                <p class="card-price">
+                                    ₹{{ "%.2f"|format(product.price|to_inr) }}
+                                    <span class="original-price">₹{{ "%.2f"|format((product.price|float * 1.2)|to_inr) }}</span>
+                                </p>
+                                <p class="card-text">{{ product.description|truncate(60) }}</p>
+                                <a href="/product/{{ product.id }}" class="btn btn-view">View Details</a>
+                            </div>
+                            
+                            <!-- Quick add to cart section -->
+                            <div class="cart-section">
+                                <div>
+                                    <input type="number" class="form-control form-control-sm" value="1" min="1" max="10" style="width: 60px;">
+                                </div>
+                                {% if is_logged_in and user_role == 'user' %}
+                                <form action="{{ url_for('add_to_cart', product_id=product.id) }}" method="POST" class="d-inline">
+                                    <input type="hidden" name="quantity" value="1">
+                                    <button type="submit" class="btn-add-cart">
+                                        <i class="fas fa-cart-plus me-1"></i>Add
+                                    </button>
+                                </form>
+                                {% elif not is_logged_in %}
+                                <a href="{{ url_for('login') }}" class="btn-add-cart">
+                                    <i class="fas fa-sign-in-alt me-1"></i>Login
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    {% if not products or products|length == 0 %}
+                    <div class="col-12">
+                        <div class="alert alert-warning text-center py-5">
+                            {% if search_query %}
+                            <h4 class="mb-3"><i class="fas fa-search me-2"></i> No results found for "{{ search_query }}"</h4>
+                            <p>Try a different search term or browse our categories</p>
+                            <a href="{{ url_for('products') }}" class="btn btn-primary mt-2">
+                                <i class="fas fa-undo me-2"></i> Clear Search
+                            </a>
+                            {% else %}
+                            <h4 class="mb-3"><i class="fas fa-box-open me-2"></i> No products available</h4>
+                            <p>We don't have any products in this category yet. Check back soon!</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                {% if products and products|length > 0 %}
+                <nav aria-label="Products Pagination">
+                    <ul class="pagination">
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
+                        </li>
+                        <li class="page-item active" aria-current="page">
+                            <a class="page-link" href="#">1</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="#">2</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="#">3</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="#">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Add event listener for Enter key in search input
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.querySelector('input[name="search"]');
+            
+            if (searchInput) {
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        document.getElementById('search-form').submit();
+                    }
+                });
+            }
+            
+            // Price range validation
+            const minPriceInput = document.querySelector('input[name="min_price"]');
+            const maxPriceInput = document.querySelector('input[name="max_price"]');
+            
+            if (minPriceInput && maxPriceInput) {
+                // Validate min price is not higher than max price
+                document.getElementById('price-filter-form').addEventListener('submit', function(e) {
+                    const minPrice = parseFloat(minPriceInput.value) || 0;
+                    const maxPrice = parseFloat(maxPriceInput.value) || Infinity;
+                    
+                    if (minPrice > maxPrice && maxPrice !== 0) {
+                        e.preventDefault();
+                        alert('Minimum price cannot be higher than maximum price');
+                    }
+                });
+                
+                // Auto-submit on Enter key
+                [minPriceInput, maxPriceInput].forEach(input => {
+                    input.addEventListener('keypress', function(e) {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            document.getElementById('price-filter-form').submit();
+                        }
+                    });
+                });
+            }
+        });
+    </script>
+</body>
+</html>

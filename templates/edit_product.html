@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Product - E-Commerce</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --bg-color: #f8f9fa;
+            --text-color: #333;
+            --border-radius: 8px;
+            --box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            padding-bottom: 2rem;
+        }
+        
+        .navbar {
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            background: linear-gradient(to right, #2c3e50, #3498db) !important;
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            letter-spacing: 0.5px;
+        }
+        
+        .nav-link {
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin: 0 5px;
+            padding: 8px 15px !important;
+            border-radius: var(--border-radius);
+        }
+        
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .product-form-container {
+            background-color: #fff;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 2rem;
+            margin: 2rem auto;
+        }
+        
+        .form-header {
+            border-bottom: 2px solid var(--primary-color);
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .form-title {
+            display: flex;
+            align-items: center;
+        }
+        
+        .form-icon {
+            width: 48px;
+            height: 48px;
+            background-color: var(--primary-color);
+            border-radius: 50%;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin-right: 15px;
+        }
+        
+        .btn {
+            border-radius: var(--border-radius);
+            font-weight: 500;
+            transition: all 0.3s ease;
+            padding: 10px 20px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+            border-color: #2980b9;
+        }
+        
+        .btn-warning {
+            background-color: #f39c12;
+            border-color: #f39c12;
+        }
+        
+        .btn-warning:hover {
+            background-color: #e67e22;
+            border-color: #e67e22;
+        }
+        
+        .btn-outline-secondary {
+            color: #7f8c8d;
+            border-color: #95a5a6;
+        }
+        
+        .btn-outline-secondary:hover {
+            background-color: #95a5a6;
+            border-color: #95a5a6;
+            color: white;
+        }
+        
+        .form-control {
+            border-radius: var(--border-radius);
+            padding: 0.75rem 1rem;
+            border: 1px solid #e1e8ed;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.25rem rgba(52, 152, 219, 0.25);
+        }
+        
+        .form-label {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+        }
+        
+        .form-text {
+            color: #7f8c8d;
+            font-size: 0.875rem;
+        }
+        
+        .input-group-text {
+            background-color: #f8f9fa;
+            border: 1px solid #e1e8ed;
+            border-radius: var(--border-radius);
+            padding: 0.75rem 1rem;
+        }
+        
+        .form-section {
+            background-color: rgba(52, 152, 219, 0.05);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .form-section-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 1.25rem;
+        }
+        
+        .image-preview {
+            width: 150px;
+            height: 150px;
+            border-radius: var(--border-radius);
+            background-color: #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            border: 2px dashed #e1e8ed;
+            overflow: hidden;
+        }
+        
+        .image-preview img {
+            max-width: 100%;
+            max-height: 100%;
+        }
+        
+        .actions-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e1e8ed;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-shopping-cart me-2"></i>E-Commerce
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard">
+                            <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/products">
+                            <i class="fas fa-box me-1"></i>Products
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/users_for_chat">
+                            <i class="fas fa-comments me-1"></i>Chat
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/logout">
+                            <i class="fas fa-sign-out-alt me-1"></i>Logout
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <div class="product-form-container">
+            <div class="form-header">
+                <div class="form-title">
+                    <div class="form-icon">
+                        <i class="fas fa-edit"></i>
+                    </div>
+                    <div>
+                        <h2 class="mb-0">Edit Product</h2>
+                        <p class="text-muted mb-0">Update your product information</p>
+                    </div>
+                </div>
+                <a href="/dashboard" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                </a>
+            </div>
+            
+            <form method="POST" enctype="multipart/form-data">
+                <div class="form-section">
+                    <h5 class="form-section-title">
+                        <i class="fas fa-info-circle me-2"></i>Basic Information
+                    </h5>
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Product Name</label>
+                        <input type="text" class="form-control" id="name" name="name" value="{{ product.name }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="4" required>{{ product.description }}</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="price" class="form-label">Price (₹)</label>
+                        <input type="number" class="form-control" id="price" name="price" step="0.01" value="{{ product.price }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="image" class="form-label">Product Image</label>
+                        <input class="form-control" type="file" id="image" name="image" accept="image/*">
+                        {% if product.image %}
+                        <div class="mt-2">
+                            <img src="/static/uploads/{{ product.image }}" alt="Current Image" style="max-width: 200px; max-height: 200px;">
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="form-section">
+                    <h5 class="form-section-title">
+                        <i class="fas fa-tag me-2"></i>Pricing & Inventory
+                    </h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="quantity" class="form-label">Quantity in Stock</label>
+                            <input type="number" id="quantity" name="quantity" class="form-control" value="{{ product.quantity }}" min="0">
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="category" class="form-label">Category</label>
+                            <select id="category" name="category" class="form-select" required>
+                                <option value="" {% if not product.category %}selected{% endif %} disabled>Select a category</option>
+                                {% for category in categories %}
+                                    <option value="{{ category }}" {% if product.category == category %}selected{% endif %}>{{ category }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="actions-container">
+                    <div>
+                        <a href="/dashboard" class="btn btn-outline-secondary me-2">Cancel</a>
+                        <button type="reset" class="btn btn-outline-secondary">Reset</button>
+                    </div>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="fas fa-save me-2"></i>Update Product
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Preview image when selected
+        document.querySelector('input[name="image"]').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const imagePreview = document.querySelector('.image-preview');
+                    imagePreview.innerHTML = `<img src="${event.target.result}" alt="Product Preview">`;
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+</body>
+</html>
